@@ -1,0 +1,40 @@
+# --- Secrets ---
+.env
+.env.local
+*.env
+!*.env.example
+
+# --- Python (backend) ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Raw/bulk training data — never commit large datasets to git
+backend/data_raw/
+*.csv
+*.parquet
+!backend/tests/fixtures/*.csv
+
+# --- Node / React (frontend) ---
+node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+*.log
+npm-debug.log*
+
+# --- Capacitor / mobile builds ---
+frontend/ios/
+frontend/android/
+
+# --- OS / Editor ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- Model artifacts (optional: uncomment if models are stored externally instead) ---
+# backend/app/signals/models/*.pkl
