@@ -23,6 +23,7 @@ yfinance==0.2.43
 
 # --- Portfolio optimization (F-04) ---
 PyPortfolioOpt==1.5.5
+joblib==1.4.2
 
 # --- LLM client (F-05) ---
 groq==0.11.0
