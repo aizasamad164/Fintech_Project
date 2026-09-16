@@ -4,7 +4,7 @@ FastAPI entrypoint. Async request handlers support NFR-1.3 (50 concurrent users)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, portfolio, explain
+from app.api.routes import auth, portfolio, explain, market
 
 app = FastAPI(
     title="Portfolio Allocation API",
@@ -23,6 +23,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(portfolio.router, prefix="/api/portfolio", tags=["portfolio"])
+app.include_router(market.router, prefix="/api/market", tags=["market"])
 app.include_router(explain.router, prefix="/api/explain", tags=["explain"])
 
 
