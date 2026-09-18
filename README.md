@@ -90,7 +90,9 @@ reference the specific FR/NFR IDs each module implements (e.g. `# FR-2.3`).
 
 TBD.
 
+## Project Structure
 
+```
 Fintech_Project/
 ├── README.md
 ├── docker-compose.yml
