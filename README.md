@@ -89,3 +89,113 @@ reference the specific FR/NFR IDs each module implements (e.g. `# FR-2.3`).
 ## License
 
 TBD.
+
+
+Fintech_Project/
+├── README.md
+├── docker-compose.yml
+├── .gitignore
+├── docs/
+│   ├── PRD.md
+│   └── tech-stack.md
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── .env.example
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py
+│   │   ├── config.py
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── deps.py
+│   │   │   └── routes/
+│   │   │       ├── __init__.py
+│   │   │       ├── auth.py
+│   │   │       ├── explain.py
+│   │   │       └── portfolio.py
+│   │   ├── core/
+│   │   │   ├── __init__.py
+│   │   │   ├── exceptions.py
+│   │   │   └── security.py
+│   │   ├── data/
+│   │   │   ├── __init__.py
+│   │   │   ├── cache.py
+│   │   │   ├── fundamentals.py
+│   │   │   ├── indicators.py
+│   │   │   └── market_data.py
+│   │   ├── llm/
+│   │   │   ├── __init__.py
+│   │   │   ├── chat_prompt_builder.py
+│   │   │   ├── chat_routes.py
+│   │   │   ├── chat_session.py
+│   │   │   ├── context_builder.py
+│   │   │   ├── disclaimer.py
+│   │   │   ├── fallback.py
+│   │   │   └── groq_client.py
+│   │   ├── optimization/
+│   │   │   ├── __init__.py
+│   │   │   ├── allocator.py
+│   │   │   ├── discretize.py
+│   │   │   └── performance.py
+│   │   ├── schemas/
+│   │   │   ├── __init__.py
+│   │   │   └── portfolio.py
+│   │   └── signals/
+│   │       ├── __init__.py
+│   │       ├── pattern_detection.py
+│   │       └── models/
+│   │           ├── __init__.py
+│   │           └── model_loader.py
+│   └── tests/
+│       ├── __init__.py
+│       └── test_optimization.py
+├── frontend/
+│   ├── index.html
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── vite.config.ts
+│   ├── postcss.config.js
+│   ├── tailwind.config.js
+│   ├── capacitor.config.ts
+│   ├── .env.example
+│   └── src/
+│       ├── main.tsx
+│       ├── App.tsx
+│       ├── index.css
+│       ├── api/
+│       │   └── client.ts
+│       ├── lib/
+│       │   └── supabaseClient.ts
+│       ├── hooks/
+│       │   └── usePortfolio.ts
+│       ├── components/
+│       │   ├── AllocationTable.tsx
+│       │   ├── ChatPanel.tsx
+│       │   ├── PortfolioChart.tsx
+│       │   ├── RiskToggle.tsx
+│       │   ├── SectorFilter.tsx
+│       │   └── Tooltip.tsx
+│       └── pages/
+│           ├── Dashboard.tsx
+│           ├── Login.tsx
+│           └── Settings.tsx
+├── ml/
+│   ├── requirements.txt
+│   ├── train.py
+│   ├── data/
+│   │   ├── raw/
+│   │   └── processed/
+│   └── trained_models/
+│       ├── general_model.pkl
+│       ├── healthcare_model.pkl
+│       ├── renewable_model.pkl
+│       └── tech_model.pkl
+└── supabase/
+    └── migrations/
+        ├── 0001_init.sql
+        ├── 0002_add_cache_tables.sql
+        └── 0003_add_chat_history.sql
