@@ -1,3 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background-color: #0D1420;
+  color: #E8EDF5;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Entrance animations ─────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes checkPop {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  70%  { transform: scale(1.2) rotate(4deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.fade-up   { animation: fadeUp  0.45s ease both; }
+.fade-in   { animation: fadeIn  0.35s ease both; }
+.scale-up  { animation: scaleUp 0.4s  ease both; }
+.check-pop { animation: checkPop 0.35s ease both; }
+
+.d1 { animation-delay: 0.05s; }
+.d2 { animation-delay: 0.12s; }
+.d3 { animation-delay: 0.20s; }
+.d4 { animation-delay: 0.30s; }
+.d5 { animation-delay: 0.42s; }
+.d6 { animation-delay: 0.56s; }
+.d7 { animation-delay: 0.72s; }
+.d8 { animation-delay: 0.90s; }
+
+/* Respect users who turn off motion in their OS settings */
+@media (prefers-reduced-motion: reduce) {
+  .fade-up, .fade-in, .scale-up, .check-pop { animation: none; }
+  .orbit-arc, .gauge-needle { transition: none; }
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #26314A; border-radius: 2px; }
+
+/* ── Input resets ────────────────────────────────────────────────────────── */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type='number'] { -moz-appearance: textfield; }
+
+/* ── Orbit sweep ─────────────────────────────────────────────────────────── */
+.orbit-arc {
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Needle ──────────────────────────────────────────────────────────────── */
+.gauge-needle {
+  transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center bottom;
+}

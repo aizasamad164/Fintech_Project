@@ -39,3 +39,4 @@ supabase/.temp/
 
 # --- Model artifacts (optional: uncomment if models are stored externally instead) ---
 # backend/app/signals/models/*.pkl
+.vs/
