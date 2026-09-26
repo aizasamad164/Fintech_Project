@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Grotesk:wght@300..700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,23 +11,19 @@ html, body, #root {
 body {
   background-color: #0D1420;
   color: #E8EDF5;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  /* Tabular figures: every digit is the same width, so prices and
+     percentages line up in columns instead of jittering. */
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 
+button, input { font-family: inherit; }
+
 /* ── Entrance animations ─────────────────────────────────────────────────── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
+@keyframes fadeUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp  { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 @keyframes checkPop {
   0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
   70%  { transform: scale(1.2) rotate(4deg); }
@@ -48,11 +44,45 @@ body {
 .d7 { animation-delay: 0.72s; }
 .d8 { animation-delay: 0.90s; }
 
-/* Respect users who turn off motion in their OS settings */
-@media (prefers-reduced-motion: reduce) {
-  .fade-up, .fade-in, .scale-up, .check-pop { animation: none; }
-  .orbit-arc, .gauge-needle { transition: none; }
+/* ── Screen & tab transitions: push / slide edits ────────────────────────── */
+@keyframes pushInFwd  { from { opacity: 0; transform: translateX(48px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes pushInBack { from { opacity: 0; transform: translateX(-48px) scale(0.985); } to { opacity: 1; transform: none; } }
+.push-fwd  { animation: pushInFwd  0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.push-back { animation: pushInBack 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ── Holding → detail: the card "expands" into the next screen ───────────── */
+/* transform-origin is set inline to where the tapped card sat on screen */
+@keyframes zoomIn  { from { opacity: 0; transform: scale(0.86); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes zoomOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.86); filter: blur(4px); } }
+.zoom-in  { animation: zoomIn  0.46s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.zoom-out { animation: zoomOut 0.28s cubic-bezier(0.64, 0, 0.78, 0) both; }
+/* The dashboard recedes slightly behind while the detail opens */
+@keyframes recede { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(1.03); } }
+.recede { animation: recede 0.22s ease both; }
+
+/* Pressable elements give a tactile response */
+.pressable { transition: transform 0.18s ease, border-color 0.2s ease, background-color 0.2s ease; }
+.pressable:hover  { transform: translateY(-1px); }
+.pressable:active { transform: scale(0.985); }
+
+/* ── Login backdrop ──────────────────────────────────────────────────────── */
+@keyframes gridDrift { from { background-position: 0 0, 0 0; } to { background-position: 48px 48px, 48px 48px; } }
+.grid-drift {
+  background-image:
+    linear-gradient(rgba(79, 216, 232, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 216, 232, 0.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: gridDrift 6s linear infinite;
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
 }
+@keyframes spin      { to { transform: rotate(360deg); } }
+@keyframes spinRev   { to { transform: rotate(-360deg); } }
+@keyframes breathe   { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+.orbit-slow  { animation: spin 38s linear infinite; transform-origin: center; }
+.orbit-mid   { animation: spinRev 26s linear infinite; transform-origin: center; }
+.orbit-fast  { animation: spin 16s linear infinite; transform-origin: center; }
+.breathe     { animation: breathe 5s ease-in-out infinite; }
 
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 4px; height: 4px; }
@@ -65,12 +95,16 @@ input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; }
 input[type='number'] { -moz-appearance: textfield; }
 
 /* ── Orbit sweep ─────────────────────────────────────────────────────────── */
-.orbit-arc {
-  transition: stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-}
+.orbit-arc { transition: stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1); }
 
-/* ── Needle ──────────────────────────────────────────────────────────────── */
-.gauge-needle {
-  transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  transform-origin: center bottom;
+/* Visible keyboard focus everywhere */
+:focus-visible { outline: 2px solid #F535AA; outline-offset: 2px; border-radius: 6px; }
+
+/* Respect users who turn off motion in their OS settings */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

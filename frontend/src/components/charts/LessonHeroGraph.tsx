@@ -12,9 +12,9 @@ export default function LessonHeroGraph({ id }: { id: number }) {
       annotations: [{ x: PL + 80, y: b - 95, label: 'Diversified peak', side: 'top' }, { x: PL + 240, y: b - 105, label: 'Smoother curve', side: 'top' }] },
     2: { color: C.violet, pts: `${PL},${b - 90} ${PL + 90},${b - 80} ${PL + 180},${b - 70} ${PL + 270},${b - 60} ${W - PR},${b - 50}`,
       annotations: [{ x: PL + 90, y: b - 95, label: 'Conservative', side: 'top' }, { x: PL + 270, y: b - 75, label: 'Balanced', side: 'bottom' }] },
-    3: { color: C.amber, pts: `${PL},${b - 40} ${PL + 80},${b - 80} ${PL + 160},${b - 60} ${PL + 240},${b - 110} ${W - PR},${b - 130}`,
+    3: { color: C.pink, pts: `${PL},${b - 40} ${PL + 80},${b - 80} ${PL + 160},${b - 60} ${PL + 240},${b - 110} ${W - PR},${b - 130}`,
       annotations: [{ x: PL + 80, y: b - 95, label: 'High P/E', side: 'top' }, { x: PL + 240, y: b - 125, label: 'Growth priced in', side: 'top' }] },
-    4: { color: C.amber, pts: `${PL},${b - 90} ${PL + 60},${b - 130} ${PL + 120},${b - 40} ${PL + 180},${b - 150} ${PL + 240},${b - 30} ${PL + 300},${b - 120} ${W - PR},${b - 100}`,
+    4: { color: C.pink, pts: `${PL},${b - 90} ${PL + 60},${b - 130} ${PL + 120},${b - 40} ${PL + 180},${b - 150} ${PL + 240},${b - 30} ${PL + 300},${b - 120} ${W - PR},${b - 100}`,
       annotations: [{ x: PL + 60, y: b - 145, label: 'High volatility', side: 'top' }, { x: PL + 180, y: b - 165, label: 'Peak swing', side: 'top' }] },
     5: { color: C.cyan, pts: `${PL},${b - 80} ${PL + 80},${b - 100} ${PL + 160},${b - 90} ${PL + 240},${b - 120} ${W - PR},${b - 110}`,
       annotations: [{ x: PL + 160, y: b - 105, label: 'Rebalance point', side: 'top' }, { x: PL + 80, y: b - 115, label: 'Drift', side: 'bottom' }] },
@@ -38,7 +38,7 @@ export default function LessonHeroGraph({ id }: { id: number }) {
           <line x1={ann.x} y1={ann.side === 'top' ? ann.y - 10 : ann.y + 2} x2={ann.x} y2={ann.side === 'top' ? ann.y - 22 : ann.y + 14}
             stroke={cfg.color} strokeWidth="1" strokeDasharray="3 2" opacity="0.6" />
           <rect x={ann.x - 36} y={ann.side === 'top' ? ann.y - 36 : ann.y + 14} width="72" height="16" rx="3" fill={`${cfg.color}20`} />
-          <text x={ann.x} y={ann.side === 'top' ? ann.y - 25 : ann.y + 25} textAnchor="middle" fontSize="9" fill={cfg.color} fontFamily="Inter" fontWeight="600">{ann.label}</text>
+          <text x={ann.x} y={ann.side === 'top' ? ann.y - 25 : ann.y + 25} textAnchor="middle" fontSize="9" fill={cfg.color} fontFamily="inherit" fontWeight="600">{ann.label}</text>
         </g>
       ))}
       {ptsArr.map((p, i) => i % 2 === 0 && <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={cfg.color} opacity="0.7" />)}

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { C } from '../../theme/tokens'
 import type { Tab } from '../../types/portfolio'
 
@@ -9,32 +9,45 @@ const NAV_TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: 'account', label: 'Account', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" /><path d="M3 18C3 14.686 6.134 12 10 12C13.866 12 17 14.686 17 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg> },
 ]
 
+const ORDER: Tab[] = ['portfolio', 'insights', 'learn', 'account']
+
 export default function NavShell({ tab, setTab, children }: { tab: Tab; setTab: (t: Tab) => void; children: ReactNode }) {
+  // Moving right in the tab order pushes in from the right, and vice versa
+  const prev = useRef(tab)
+  const dir = ORDER.indexOf(tab) >= ORDER.indexOf(prev.current) ? 'push-fwd' : 'push-back'
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (prev.current !== tab && scrollRef.current) scrollRef.current.scrollTop = 0
+    prev.current = tab
+  }, [tab])
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: C.canvas }}>
       {/* Desktop left rail */}
       <div className="hidden lg:flex flex-col w-56 flex-shrink-0" style={{ backgroundColor: C.surface, borderRight: `1px solid ${C.border}` }}>
         <div className="px-5 py-5" style={{ borderBottom: `1px solid ${C.border}` }}>
           <div className="text-lg font-semibold" style={{ fontFamily: "'DM Serif Display'", color: C.text }}>StockSense</div>
-          <div className="text-[10px] mt-0.5" style={{ color: C.muted, fontFamily: 'Inter' }}>Educational only</div>
+          <div className="text-[10px] mt-0.5" style={{ color: C.muted }}>Educational only</div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {NAV_TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all"
-              style={{ backgroundColor: tab === t.id ? `${C.cyan}15` : 'transparent', color: tab === t.id ? C.cyan : C.muted, fontFamily: 'Inter', fontWeight: tab === t.id ? 600 : 400 }}>
+              className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all"
+              style={{ backgroundColor: tab === t.id ? `${C.cyan}15` : 'transparent', color: tab === t.id ? C.cyan : C.muted, fontWeight: tab === t.id ? 600 : 400 }}>
+              {tab === t.id && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full" style={{ backgroundColor: C.pink, boxShadow: `0 0 8px ${C.pink}` }} />}
               <span style={{ color: tab === t.id ? C.cyan : C.muted }}>{t.icon}</span>
               {t.label}
             </button>
           ))}
         </nav>
         <div className="px-5 py-4" style={{ borderTop: `1px solid ${C.border}` }}>
-          <div className="text-[10px]" style={{ color: C.border, fontFamily: 'Inter', lineHeight: 1.5 }}>For educational use only. No funds held, no trades executed.</div>
+          <div className="text-[10px]" style={{ color: C.border, lineHeight: 1.5 }}>For educational use only. No funds held, no trades executed.</div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-16 lg:pb-0">{children}</div>
+      <div ref={scrollRef} data-scroll-root className="flex-1 overflow-y-auto overflow-x-hidden pb-16 lg:pb-0">
+        <div key={tab} className={dir}>{children}</div>
+      </div>
 
       {/* Mobile bottom tab bar */}
       <div className="fixed bottom-0 left-0 right-0 flex lg:hidden" style={{ backgroundColor: C.surface, borderTop: `1px solid ${C.border}`, zIndex: 50 }}>
@@ -42,7 +55,7 @@ export default function NavShell({ tab, setTab, children }: { tab: Tab; setTab: 
           <button key={t.id} onClick={() => setTab(t.id)} className="flex-1 flex flex-col items-center gap-1 py-2 transition-all"
             style={{ color: tab === t.id ? C.cyan : C.muted }}>
             {t.icon}
-            <span className="text-[10px]" style={{ fontFamily: 'Inter', fontWeight: tab === t.id ? 600 : 400 }}>{t.label}</span>
+            <span className="text-[10px]" style={{ fontWeight: tab === t.id ? 600 : 400 }}>{t.label}</span>
           </button>
         ))}
       </div>

@@ -24,9 +24,17 @@ export const STOCKS: Record<string, StockDef[]> = {
     { ticker: 'ENPH', name: 'Enphase Energy', sector: 'Renewable Energy', riskClass: 'Aggressive', yearReturn: -18.4, trend: [100,94,88,84,90,95,89,84,88,85,84,82], peRatio: 28, volatility: 'High', sharePrice: 68.40 },
     { ticker: 'RUN', name: 'Sunrun Inc.', sector: 'Renewable Energy', riskClass: 'Aggressive', yearReturn: 8.4, trend: [100,104,109,105,112,118,113,119,124,120,125,108], peRatio: 35, volatility: 'High', sharePrice: 14.80 },
   ],
+  Pharmaceuticals: [
+    { ticker: 'LLY', name: 'Eli Lilly & Co.', sector: 'Pharmaceuticals', riskClass: 'Balanced', yearReturn: 27.6, trend: [100,104,109,106,113,119,115,121,127,123,129,128], peRatio: 58, volatility: 'Medium', sharePrice: 782.40 },
+    { ticker: 'MRK', name: 'Merck & Co.', sector: 'Pharmaceuticals', riskClass: 'Conservative', yearReturn: 9.4, trend: [100,101,103,101,104,106,104,107,109,108,110,109], peRatio: 17, volatility: 'Low', sharePrice: 118.60 },
+    { ticker: 'ABBV', name: 'AbbVie Inc.', sector: 'Pharmaceuticals', riskClass: 'Conservative', yearReturn: 13.1, trend: [100,102,104,103,106,108,107,110,112,111,114,113], peRatio: 19, volatility: 'Low', sharePrice: 176.20 },
+    { ticker: 'VRTX', name: 'Vertex Pharmaceuticals', sector: 'Pharmaceuticals', riskClass: 'Aggressive', yearReturn: 21.8, trend: [100,105,109,104,112,118,112,119,124,118,125,122], peRatio: 31, volatility: 'Medium', sharePrice: 452.30 },
+    { ticker: 'PFE', name: 'Pfizer Inc.', sector: 'Pharmaceuticals', riskClass: 'Aggressive', yearReturn: -6.2, trend: [100,98,96,97,95,93,95,94,92,93,94,94], peRatio: 14, volatility: 'Medium', sharePrice: 27.90 },
+  ],
 }
 STOCKS['Multi-Sector'] = [
   STOCKS['Technology'][0], STOCKS['Technology'][2],
   STOCKS['Healthcare'][0], STOCKS['Healthcare'][3],
+  STOCKS['Pharmaceuticals'][0],
   STOCKS['Renewable Energy'][0], STOCKS['Renewable Energy'][1],
 ]

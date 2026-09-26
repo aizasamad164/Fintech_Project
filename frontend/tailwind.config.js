@@ -10,7 +10,7 @@ export default {
         border: '#26314A',
         cyan: '#4FD8E8',
         violet: '#8B7FF0',
-        amber: '#F0A830',
+        pink: '#F535AA',
         muted: '#8793AC',
         text: '#E8EDF5',
         text2: '#C4CEDC',
@@ -19,7 +19,7 @@ export default {
       },
       fontFamily: {
         display: ['"DM Serif Display"', 'Georgia', 'serif'],
-        body: ['Inter', 'system-ui', 'sans-serif'],
+        body: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
       },
     },
   },

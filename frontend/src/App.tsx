@@ -1,7 +1,7 @@
 // App.tsx is the "traffic controller": it only decides WHICH screen to show
 // and holds the shared state (budget, risk, sector, pro status).
 // All UI lives in pages/ and components/.
-import { useCallback, useState } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import type { DashVariant, Risk, Screen, Sector, Tab } from './types/portfolio'
 import { LESSONS } from './data/lessons'
 
@@ -30,32 +30,38 @@ export default function App() {
   const [isPro, setIsPro] = useState(false)
   const [lessonId, setLessonId] = useState<number | null>(null)
 
+  // Every full-screen change is a push edit: forward slides in from the right,
+  // going back slides in from the left.
+  const [dir, setDir] = useState<'push-fwd' | 'push-back'>('push-fwd')
+  const go = useCallback((next: Screen, back = false) => { setDir(back ? 'push-back' : 'push-fwd'); setScreen(next) }, [])
+  const wrap = (node: ReactNode) => <div key={screen} className={dir}>{node}</div>
+
   const handleViewPortfolio = useCallback((s: Sector, r: Risk) => { setSector(s); setRisk(r); setTab('portfolio') }, [])
 
   // Onboarding (full-screen, before the nav appears)
-  if (screen === 'login') return <Login onLogin={() => setScreen('budget')} />
-  if (screen === 'budget') return <BudgetStep onNext={b => { setBudget(b); setScreen('risk') }} />
-  if (screen === 'risk') return <RiskStep onNext={r => { setRisk(r); setScreen('sector') }} onBack={() => setScreen('budget')} />
-  if (screen === 'sector') return <SectorStep onNext={s => { setSector(s); setScreen('processing') }} onBack={() => setScreen('risk')} />
-  if (screen === 'processing') return <Processing onDone={() => setScreen('nav')} />
+  if (screen === 'login') return wrap(<Login onLogin={() => go('budget')} />)
+  if (screen === 'budget') return wrap(<BudgetStep onNext={b => { setBudget(b); go('risk') }} />)
+  if (screen === 'risk') return wrap(<RiskStep onNext={r => { setRisk(r); go('sector') }} onBack={() => go('budget', true)} />)
+  if (screen === 'sector') return wrap(<SectorStep onNext={s => { setSector(s); go('processing') }} onBack={() => go('risk', true)} />)
+  if (screen === 'processing') return wrap(<Processing onDone={() => go('nav')} />)
 
   // Pro flow (full-screen, outside the nav)
-  if (screen === 'paywall') return <Paywall onUpgrade={() => setScreen('checkout')} onBack={() => setScreen('nav')} />
-  if (screen === 'checkout') return <Checkout onSuccess={() => setScreen('pro-success')} onBack={() => setScreen('paywall')} />
-  if (screen === 'pro-success') return <ProSuccess onDone={() => { setIsPro(true); setTab('insights'); setScreen('nav') }} />
+  if (screen === 'paywall') return wrap(<Paywall onUpgrade={() => go('checkout')} onBack={() => go('nav', true)} />)
+  if (screen === 'checkout') return wrap(<Checkout onSuccess={() => go('pro-success')} onBack={() => go('paywall', true)} />)
+  if (screen === 'pro-success') return wrap(<ProSuccess onDone={() => { setIsPro(true); setTab('insights'); go('nav') }} />)
 
   // Main app with tabs
-  return (
+  return wrap(
     <NavShell tab={tab} setTab={setTab}>
       {tab === 'portfolio' && (
         <Dashboard budget={budget} risk={risk} sector={sector} variant={dashVariant}
           onVariant={setDashVariant} onRisk={setRisk} onSector={setSector} onBudget={setBudget} />
       )}
-      {tab === 'insights' && <Insights isPro={isPro} onUnlock={() => setScreen('paywall')} onViewPortfolio={handleViewPortfolio} />}
+      {tab === 'insights' && <Insights isPro={isPro} onUnlock={() => go('paywall')} onViewPortfolio={handleViewPortfolio} />}
       {tab === 'learn' && (lessonId !== null
-        ? <LessonDetail id={lessonId} onBack={() => setLessonId(null)} onNext={() => setLessonId((lessonId + 1) % LESSONS.length)} />
-        : <LearnTab onLesson={setLessonId} />)}
-      {tab === 'account' && <Account isPro={isPro} onUpgrade={() => setScreen('paywall')} onSignOut={() => { setIsPro(false); setScreen('login') }} />}
+        ? <div key={lessonId} className="push-fwd"><LessonDetail id={lessonId} onBack={() => setLessonId(null)} onNext={() => setLessonId((lessonId + 1) % LESSONS.length)} /></div>
+        : <div key="list" className="push-back"><LearnTab onLesson={setLessonId} /></div>)}
+      {tab === 'account' && <Account isPro={isPro} onUpgrade={() => go('paywall')} onSignOut={() => { setIsPro(false); go('login', true) }} />}
     </NavShell>
   )
 }

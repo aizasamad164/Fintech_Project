@@ -3,7 +3,7 @@ export type Screen =
   | 'nav' | 'paywall' | 'checkout' | 'pro-success'
 export type Tab = 'portfolio' | 'insights' | 'learn' | 'account'
 export type Risk = 'Conservative' | 'Balanced' | 'Aggressive'
-export type Sector = 'Technology' | 'Healthcare' | 'Renewable Energy' | 'Multi-Sector'
+export type Sector = 'Technology' | 'Healthcare' | 'Renewable Energy' | 'Pharmaceuticals' | 'Multi-Sector'
 export type DashVariant = 'success' | 'no-explanation' | 'stale'
 
 export interface StockDef {
@@ -31,4 +31,13 @@ export interface Portfolio {
   explanation: string[]
   historical: { month: string; value: number }[]
   projectedValue: number
+}
+
+export interface NewsItem {
+  id: string
+  ticker: string
+  headline: string
+  source: string
+  url: string
+  publishedAt: string // ISO timestamp
 }
