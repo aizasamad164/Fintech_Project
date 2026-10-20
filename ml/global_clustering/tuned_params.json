@@ -1,0 +1,35 @@
+{
+  "LightGBM": {
+    "params": {
+      "num_leaves": 7,
+      "feature_fraction": 0.9,
+      "bagging_fraction": 0.7,
+      "learning_rate": 0.02
+    },
+    "cv_auc": 0.522875768715434
+  },
+  "RandomForest": {
+    "params": {
+      "n_estimators": 200,
+      "min_samples_leaf": 20,
+      "max_features": "sqrt"
+    },
+    "cv_auc": 0.5197705621233458
+  },
+  "XGBoost": {
+    "params": {
+      "learning_rate": 0.02,
+      "subsample": 0.7,
+      "colsample_bytree": 0.9,
+      "reg_alpha": 0.0,
+      "reg_lambda": 1.0
+    },
+    "cv_auc": 0.5144182502840934
+  },
+  "LSTM": {
+    "params": {
+      "seq_len": 10
+    },
+    "cv_auc": 0.5298801628905169
+  }
+}
