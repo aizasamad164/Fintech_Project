@@ -1,7 +1,7 @@
 """
 FR-2.4: In-memory cache to stay within external API rate limits (e.g. 60 req/min).
 NFR-3.2: If live feeds fail, callers should fall back to the last cached value here
-(or to the Supabase market_data_cache table for cold-start / multi-instance cases).
+(or to the Supabase ohlcv_daily table for cold-start / multi-instance cases).
 """
 from cachetools import TTLCache
 from app.config import settings

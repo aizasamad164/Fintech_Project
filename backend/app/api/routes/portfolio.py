@@ -1,28 +1,20 @@
 """
-Core portfolio generation endpoint.
-Orchestrates: data ingestion (F-02) -> signal generation (F-03) -> optimization (F-04).
+Core portfolio generation endpoint used by the frontend (POST /api/portfolio/generate).
+
+It shares one implementation with POST /api/v1/recommend, and accepts the
+frontend's `risk_strategy` field as well as `risk_profile`, so the app keeps
+working without any client change.
+Later steps: LLM explanations (F-05) will fill `explanation_bullets`.
 Target: full round trip within 3.0s (NFR-1.1).
 """
 from fastapi import APIRouter
-from pydantic import BaseModel
 
+from app.api.routes.recommend import recommend
+from app.schemas.portfolio import RecommendRequest, RecommendResponse
 
 router = APIRouter()
 
 
-class PortfolioRequest(BaseModel):
-    budget: float                  # FR-1.2
-    risk_strategy: str             # FR-1.3: "conservative" | "balanced" | "aggressive"
-    sectors: list[str]             # FR-1.4: e.g. ["technology"] or ["combined"]
-
-
-@router.post("/generate")
-async def generate_portfolio(request: PortfolioRequest):
-    # TODO:
-    # 1. app.data.market_data -> fetch OHLCV for candidate pool (FR-2.1)
-    # 2. app.data.indicators -> compute technical indicators (FR-2.3)
-    # 3. app.signals.* -> pattern detection + ML probability scores (FR-3.1-3.3)
-    # 4. app.optimization.allocator -> mean-variance weights (FR-4.1)
-    # 5. app.optimization.discretize -> dollar amounts + share counts (FR-4.2)
-    # 6. app.optimization.performance -> 1yr historical return projection (FR-4.3)
-    raise NotImplementedError
+@router.post("/generate", response_model=RecommendResponse)
+async def generate_portfolio(request: RecommendRequest) -> dict:
+    return await recommend(request)

@@ -1,3 +1,6 @@
+# Requires Python 3.12+ : pandas-ta 0.4.x (the only version still on PyPI) needs it.
+# Dockerfile and .github/workflows/ci.yml are set to 3.12 to match.
+
 # --- Web framework ---
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.6
@@ -8,27 +11,28 @@ python-multipart>=0.0.12
 # --- Environment Configuration ---
 python-dotenv>=1.0.1
 
-# --- Auth / Security ---
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
+# --- Auth / Security (NFR-2.3) ---
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1  # passlib 1.7.4 breaks with bcrypt>=4.1, so keep this pin
 
 # --- Database / Supabase ---
 supabase>=2.7.4
 
-# --- Data & ML ---
-pandas>=2.2.0
-numpy>=1.26.0
+# --- Data & ML (F-02, F-03) ---
+pandas==2.3.3
+numpy==2.2.6
 ta>=0.11.0
-pandas-ta>=0.3.14b0
-scipy>=1.14.0
-lightgbm>=4.5.0
-xgboost>=2.1.0
-scikit-learn>=1.5.0
-yfinance>=0.2.43
+pandas-ta==0.4.71b0
+scipy==1.18.1
+lightgbm==4.7.0
+xgboost==3.4.1
+scikit-learn==1.9.1
+yfinance==1.7.0
 
-# --- Portfolio optimization ---
-PyPortfolioOpt>=1.5.5
-joblib>=1.4.2
+# --- Portfolio optimization (F-04) ---
+PyPortfolioOpt==1.6.0
+joblib==1.4.2
 
 # --- LLM client ---
 groq>=0.11.0
