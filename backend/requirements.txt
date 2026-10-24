@@ -19,7 +19,7 @@ supabase>=2.7.4
 pandas>=2.2.0
 numpy>=1.26.0
 ta>=0.11.0
-pandas-ta>=0.3.14b0
+pandas-ta>=0.3.14b0; python_version >= "3.12"
 scipy>=1.14.0
 lightgbm>=4.5.0
 xgboost>=2.1.0
