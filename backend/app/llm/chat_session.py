@@ -5,10 +5,13 @@ from typing import List, Dict, Any, Optional
 _IN_MEMORY_HISTORY: Dict[str, List[Dict[str, Any]]] = {}
 
 try:
-    from app.lib.supabaseClient import supabase
-    SUPABASE_AVAILABLE = supabase is not None
+    from app.data.portfolio_store import storage_mode
+    from app.data.supabase_client import get_supabase
+    SUPABASE_AVAILABLE = storage_mode() == "supabase"
+    supabase = get_supabase() if SUPABASE_AVAILABLE else None
 except Exception:
     SUPABASE_AVAILABLE = False
+    supabase = None
 
 
 class ChatSessionManager:
@@ -24,11 +27,11 @@ class ChatSessionManager:
                 res = supabase.table("chat_history")\
                     .select("role, content")\
                     .eq("session_id", session_id)\
-                    .order("created_at", desc=False)\
+                    .order("created_at", desc=True)\
                     .limit(limit)\
                     .execute()
                 if res.data:
-                    return res.data
+                    return list(reversed(res.data))
             except Exception as e:
                 print(f"[ChatSessionManager] Supabase offline/unreachable ({e}). Using in-memory history.")
 

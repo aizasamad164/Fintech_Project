@@ -1,110 +1,118 @@
 # backend/app/llm/tools.py
+"""Agent tool schemas + dispatcher (report Appendix C)."""
+import asyncio
 import json
-from typing import Dict, Any, List
+from typing import Any, Dict, List, Optional
 
-from app.signals.models.model_loader import predict_ticker_signal
-from app.optimization.portfolio_service import run_portfolio_rebalancing
-from app.data.news import get_ticker_news
 from app.data.market_data import get_latest_ticker_price
+from app.data.news import get_ticker_news
+from app.optimization.portfolio_service import run_portfolio_rebalancing
+from app.optimization.portfolio_tracker import calculate_portfolio_performance
+from app.signals.models.model_loader import predict_ticker_signal
 
-# Agent Tool Schemas (OpenAI-compatible format for Groq / Qwen / Llama models)
 AGENT_TOOLS: List[Dict[str, Any]] = [
     {
         "type": "function",
         "function": {
-            "name": "get_ml_prediction",
-            "description": "Fetch machine learning signal (BUY/HOLD/SELL), confidence score, and predicted 5-day return for a stock symbol within a specific sector.",
+            "name": "optimize_portfolio",
+            "description": (
+                "Calculates new portfolio allocations (top 3-5 holdings) using inverse volatility and ML "
+                "model signals. CALL THIS ONLY when the user explicitly asks to allocate capital, build a "
+                "new portfolio, or rebalance funds."
+            ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "ticker": {
-                        "type": "string",
-                        "description": "Stock symbol (e.g. NVDA, AAPL, LLY, PFE)"
-                    },
-                    "sector": {
-                        "type": "string",
-                        "description": "Sector: Technology, Healthcare, Pharmaceuticals, Renewable_Energy, or General"
-                    }
+                    "portfolio_value": {"type": "number", "description": "Total dollar amount to invest (e.g. 2000, 5000, 10000)"},
+                    "target_sector": {"type": "string", "description": "'Technology', 'Healthcare', 'Pharmaceuticals', 'Renewable_Energy', or 'All'"},
+                    "risk_strategy": {"type": "string", "enum": ["conservative", "balanced", "aggressive"],
+                                      "description": "How much price swing the user accepts (default balanced)"},
+                    "top_n": {"type": "integer", "description": "Number of holdings, 3 to 5 (default depends on strategy)"},
                 },
-                "required": ["ticker"]
-            }
-        }
+                "required": ["portfolio_value"],
+            },
+        },
     },
     {
         "type": "function",
         "function": {
-            "name": "optimize_portfolio",
-            "description": "Calculates a focused, risk-managed portfolio allocation (top 3-5 holdings) using inverse volatility and ML model signals.",
+            "name": "get_portfolio_performance",
+            "description": (
+                "Fetches live market prices, gain/loss in USD and percentage return for the user's saved "
+                "portfolio that is loaded in this chat. CALL THIS when the user asks how their saved "
+                "portfolio is performing or why it is up/down."
+            ),
+            "parameters": {"type": "object", "properties": {}},
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_ml_prediction",
+            "description": (
+                "Fetches the machine learning signal (BUY/HOLD/SELL), confidence and predicted 5-day return "
+                "for one stock. CALL THIS when the user asks for AI signals or predictions on a ticker."
+            ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "portfolio_value": {
-                        "type": "number",
-                        "description": "Total dollar amount to invest (e.g., 2000, 5000, 10000)"
-                    },
-                    "target_sector": {
-                        "type": "string",
-                        "description": "Specific sector focus (e.g., 'Technology', 'Healthcare', 'Pharmaceuticals', 'Renewable_Energy', or 'All')"
-                    },
-                    "top_n": {
-                        "type": "integer",
-                        "description": "Number of top holdings to select for the portfolio (default 5 for focused real-world allocations)"
-                    },
-                    "allow_fractional": {
-                        "type": "boolean",
-                        "description": "Whether fractional share quantities are permitted (default True)"
-                    }
+                    "ticker": {"type": "string", "description": "Stock symbol (e.g. NVDA, AAPL, LLY)"},
+                    "sector": {"type": "string", "description": "Technology, Healthcare, Pharmaceuticals, Renewable_Energy, or General"},
                 },
-                "required": ["portfolio_value"]
-            }
-        }
+                "required": ["ticker"],
+            },
+        },
     },
     {
         "type": "function",
         "function": {
             "name": "get_market_news",
-            "description": "Fetch recent financial market headlines, sources, and links for a stock ticker.",
+            "description": (
+                "Fetches recent news headlines and publishers for a stock symbol. CALL THIS to add "
+                "real-world context to top holdings or to investigate price moves."
+            ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "ticker": {
-                        "type": "string",
-                        "description": "Stock symbol (e.g. NVDA, TSLA, ABT)"
-                    },
-                    "limit": {
-                        "type": "integer",
-                        "description": "Number of news articles to retrieve (default 3 to 5)"
-                    }
+                    "ticker": {"type": "string", "description": "Stock symbol (e.g. NVDA, TSLA)"},
+                    "limit": {"type": "integer", "description": "Number of articles to retrieve (default 3)"},
                 },
-                "required": ["ticker"]
-            }
-        }
+                "required": ["ticker"],
+            },
+        },
     },
     {
         "type": "function",
         "function": {
-            "name": "get_stock_fundamentals",
-            "description": "Fetch latest live price and fundamental data for a given stock ticker.",
+            "name": "get_stock_price",
+            "description": "Fetches the latest live price for a stock symbol. CALL THIS for simple price checks.",
             "parameters": {
                 "type": "object",
-                "properties": {
-                    "ticker": {
-                        "type": "string",
-                        "description": "Stock symbol (e.g. NVDA, AAPL)"
-                    }
-                },
-                "required": ["ticker"]
-            }
-        }
-    }
+                "properties": {"ticker": {"type": "string", "description": "Stock symbol (e.g. NVDA, AAPL)"}},
+                "required": ["ticker"],
+            },
+        },
+    },
 ]
 
 
-async def execute_tool_call(tool_name: str, raw_arguments: Any) -> Dict[str, Any]:
-    """
-    Executes tool calls requested by the LLM agent and returns structured dictionary responses.
-    """
-    # Parse JSON string arguments if necessary
+def _slim_rebalance(result: Dict[str, Any]) -> Dict[str, Any]:
+    """The full payload carries 12-month trend arrays the LLM doesn't need;
+    trimming them keeps us well inside Groq's token limits."""
+    keep = ("ticker", "name", "sector", "weight_pct", "actual_usd_allocated", "shares", "price",
+            "year_return_pct", "volatility", "ml_signal", "ml_confidence", "predicted_5d_return")
+    return {
+        "status": result.get("status"),
+        "message": result.get("message"),
+        "risk_strategy": result.get("risk_strategy"),
+        "target_sector": result.get("target_sector"),
+        "summary": result.get("summary"),
+        "allocations": [{k: a.get(k) for k in keep} for a in result.get("allocations", [])],
+    }
+
+
+async def execute_tool_call(tool_name: str, raw_arguments: Any,
+                            user_portfolio_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     try:
         if isinstance(raw_arguments, str):
             args = json.loads(raw_arguments) if raw_arguments.strip() else {}
@@ -112,42 +120,37 @@ async def execute_tool_call(tool_name: str, raw_arguments: Any) -> Dict[str, Any
             args = raw_arguments
         else:
             args = {}
-    except Exception as parse_err:
-        return {"error": f"Invalid tool arguments JSON: {str(parse_err)}"}
+    except Exception as parse_err:  # noqa: BLE001
+        return {"error": f"Invalid tool arguments JSON: {parse_err}"}
 
     try:
-        if tool_name == "get_ml_prediction":
-            ticker = args.get("ticker", "").strip()
-            sector = args.get("sector", "General").strip()
-            return predict_ticker_signal(ticker=ticker, sector=sector)
-
-        elif tool_name == "optimize_portfolio":
-            portfolio_val = float(args.get("portfolio_value", 10000.0))
-            target_sector = args.get("target_sector")
-            top_n = int(args.get("top_n", 5))
-            allow_fractional = bool(args.get("allow_fractional", True))
-
-            return await run_portfolio_rebalancing(
-                portfolio_value=portfolio_val,
-                target_sector=target_sector,
-                top_n=top_n,
-                allow_fractional=allow_fractional
+        if tool_name == "optimize_portfolio":
+            result = await run_portfolio_rebalancing(
+                portfolio_value=float(args.get("portfolio_value", 10000.0)),
+                target_sector=args.get("target_sector"),
+                risk_strategy=args.get("risk_strategy", "balanced"),
+                top_n=int(args["top_n"]) if args.get("top_n") else None,
+                allow_fractional=True,
             )
+            return _slim_rebalance(result)
 
-        elif tool_name == "get_market_news":
-            ticker = args.get("ticker", "").strip()
-            limit = int(args.get("limit", 3))
-            return get_ticker_news(ticker=ticker, limit=limit)
+        if tool_name == "get_portfolio_performance":
+            positions = (user_portfolio_data or {}).get("positions", [])
+            if not positions:
+                return {"error": "No saved portfolio is loaded in this chat. Ask the user to open one from the Tracking tab."}
+            return await asyncio.to_thread(calculate_portfolio_performance, positions)
 
-        elif tool_name == "get_stock_fundamentals":
-            ticker = args.get("ticker", "").strip()
-            res = get_latest_ticker_price(ticker=ticker)
-            if hasattr(res, "__await__"):
-                return await res
-            return res
+        if tool_name == "get_ml_prediction":
+            return await asyncio.to_thread(
+                predict_ticker_signal, str(args.get("ticker", "")).strip(), str(args.get("sector") or "General").strip())
 
-        else:
-            return {"error": f"Unknown tool: '{tool_name}'"}
+        if tool_name == "get_market_news":
+            return await asyncio.to_thread(
+                get_ticker_news, str(args.get("ticker", "")).strip(), int(args.get("limit", 3)))
 
-    except Exception as e:
-        return {"error": f"Failed to execute tool '{tool_name}': {str(e)}"}
+        if tool_name in ("get_stock_price", "get_stock_fundamentals"):  # old name kept for compatibility
+            return await asyncio.to_thread(get_latest_ticker_price, str(args.get("ticker", "")).strip())
+
+        return {"error": f"Unknown tool: '{tool_name}'"}
+    except Exception as e:  # noqa: BLE001
+        return {"error": f"Failed to execute tool '{tool_name}': {e}"}

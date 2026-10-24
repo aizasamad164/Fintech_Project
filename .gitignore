@@ -39,3 +39,7 @@ supabase/.temp/
 
 # --- Model artifacts (optional: uncomment if models are stored externally instead) ---
 # backend/app/signals/models/*.pkl
+.vs/
+
+# Local saved-portfolio store used when Supabase isn't configured
+backend/.local_portfolios.json
