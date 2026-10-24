@@ -1,21 +1,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Headlines per ticker. Mock while VITE_USE_MOCK is on.
-// Backend plan: GET /api/v1/news/{ticker}?limit=3 → Finnhub company-news,
-// cached in Supabase for ~1 hour. Swap happens here only.
+// Headlines per ticker. Mock while VITE_USE_MOCK is on, otherwise
+// GET /api/news/{ticker}?limit=3 (yfinance with Google News RSS fallback,
+// cached 15 minutes on the backend).
 // ─────────────────────────────────────────────────────────────────────────────
+import { api, USE_MOCK } from './api'
 import type { NewsItem } from '../types/portfolio'
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 export async function getNews(ticker: string, limit = 3): Promise<NewsItem[]> {
   if (USE_MOCK) {
     await new Promise(r => setTimeout(r, 250))
     return mockNews(ticker).slice(0, limit)
   }
-  const res = await fetch(`${API_BASE}/api/v1/news/${encodeURIComponent(ticker)}?limit=${limit}`)
-  if (!res.ok) throw new Error(`News request failed (${res.status})`)
-  return (await res.json()) as NewsItem[]
+  return api<NewsItem[]>(`/api/news/${encodeURIComponent(ticker)}?limit=${limit}`)
 }
 
 // PLACEHOLDER headlines — not real news. Sources are fictional on purpose so

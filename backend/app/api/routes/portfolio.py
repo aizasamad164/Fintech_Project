@@ -61,7 +61,7 @@ async def rebalance(req: RebalanceRequest):
         top = [a["ticker"] for a in result["allocations"][:2]]
         try:
             news = await asyncio.wait_for(
-                asyncio.gather(*[asyncio.to_thread(get_ticker_news, t, 2) for t in top]), timeout=5)
+                asyncio.gather(*[asyncio.to_thread(get_ticker_news, t, 2) for t in top]), timeout=3)
             headlines = {n["ticker"]: [a["title"] for a in n["articles"]] for n in news}
         except Exception:  # noqa: BLE001 - news is optional context
             headlines = {}

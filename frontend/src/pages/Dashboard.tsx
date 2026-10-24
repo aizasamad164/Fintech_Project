@@ -11,26 +11,45 @@ import AllocationLegend from '../components/charts/AllocationLegend'
 import RiskGauge from '../components/charts/RiskGauge'
 import HistChart from '../components/charts/HistChart'
 import StockDetail from './StockDetail'
-import type { DashVariant, Risk, Sector } from '../types/portfolio'
+import { savePortfolio } from '../services/trackingService'
+import type { DashVariant, Portfolio, Risk, Sector } from '../types/portfolio'
 
 interface Props {
   budget: number; risk: Risk; sector: Sector; variant: DashVariant
   onVariant: (v: DashVariant) => void
   onRisk: (r: Risk) => void; onSector: (s: Sector) => void; onBudget: (b: number) => void
+  onPortfolio?: (p: Portfolio | null) => void   // lets the Advisor tab see what's on screen
+  onOpenTracking?: () => void
+  onAskAdvisor?: () => void
 }
 
 type Detail = { ticker: string; origin: string; phase: 'open' | 'closing'; returnScroll: number }
 
 const tile = { backgroundColor: C.surface, border: `1px solid ${C.border}` }
 
-export default function Dashboard({ budget, risk, sector, variant, onVariant, onRisk, onSector, onBudget }: Props) {
+export default function Dashboard({ budget, risk, sector, variant, onVariant, onRisk, onSector, onBudget, onPortfolio, onOpenTracking, onAskAdvisor }: Props) {
   const { portfolio, loading, error } = useGeneratedPortfolio(budget, risk, sector)
   const [animKey, setAnimKey] = useState(0)
   const [adjustOpen, setAdjustOpen] = useState(false)
   const [detail, setDetail] = useState<Detail | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const restoreScroll = useRef<number | null>(null)
-  useEffect(() => { if (portfolio) setAnimKey(k => k + 1) }, [portfolio])
+  useEffect(() => { if (portfolio) setAnimKey(k => k + 1); onPortfolio?.(portfolio) }, [portfolio]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save → Tracking. Reset whenever a different portfolio is generated.
+  const [save, setSave] = useState<{ state: 'idle' | 'saving' | 'saved' | 'error'; msg?: string }>({ state: 'idle' })
+  useEffect(() => { setSave({ state: 'idle' }) }, [portfolio])
+  const doSave = async () => {
+    if (!portfolio) return
+    setSave({ state: 'saving' })
+    try {
+      const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      await savePortfolio(portfolio, `${risk} ${sector} · ${date}`)
+      setSave({ state: 'saved' })
+    } catch (e) {
+      setSave({ state: 'error', msg: e instanceof Error ? e.message : 'Could not save' })
+    }
+  }
 
   const scrollRoot = () => rootRef.current?.closest('[data-scroll-root]') as HTMLElement | null
 
@@ -83,7 +102,20 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
           style={{ backgroundColor: adjustOpen ? `${C.pink}25` : `${C.pink}12`, color: C.pink, border: `1px solid ${C.pink}40` }}>
           {adjustOpen ? 'Close adjust' : 'Adjust'}
         </button>
+        {portfolio && (save.state === 'saved'
+          ? <button onClick={onOpenTracking} className="pressable inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-full font-medium"
+              style={{ backgroundColor: `${C.teal}18`, color: C.teal, border: `1px solid ${C.teal}45` }}>
+              ✓ Saved · track it
+            </button>
+          : <button onClick={doSave} disabled={save.state === 'saving'} className="pressable inline-flex items-center px-2.5 py-1 text-xs rounded-full font-medium disabled:opacity-60"
+              style={{ backgroundColor: `${C.cyan}12`, color: C.cyan, border: `1px solid ${C.cyan}40` }}>
+              {save.state === 'saving' ? 'Saving…' : 'Save & track'}
+            </button>)}
+        {portfolio?.asOf && <span className="text-[11px] ml-1" style={{ color: C.muted }}>Prices as of {portfolio.asOf}</span>}
       </div>
+      {save.state === 'error' && (
+        <div className="mt-2 text-xs" style={{ color: C.pink }}>Couldn't save: {save.msg}</div>
+      )}
       {adjustOpen && <AdjustPanel risk={risk} sector={sector} budget={budget} onRisk={onRisk} onSector={onSector} onBudget={onBudget} onClose={() => setAdjustOpen(false)} />}
       {variant === 'stale' && (
         <div className="mt-3 px-4 py-2 rounded-lg text-xs fade-in" style={{ backgroundColor: `${C.pink}12`, border: `1px solid ${C.pink}30`, color: C.muted }}>
@@ -175,7 +207,10 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
         <aside className="lg:col-span-4">
           <div className="lg:sticky lg:top-6 space-y-4 fade-up d6">
             <div className="rounded-2xl p-5" style={{ backgroundColor: C.card, borderLeft: `3px solid ${C.violet}` }}>
-              <div className="text-sm font-semibold mb-3" style={{ color: C.text }}>Plain-English read</div>
+              <div className="flex items-center justify-between mb-3 gap-2">
+                <div className="text-sm font-semibold" style={{ color: C.text }}>Plain-English read</div>
+                {portfolio.explanationSource === 'llm' && <TagChip label="AI-written" color={C.violet} />}
+              </div>
               {variant === 'no-explanation' || portfolio.explanation.length === 0 ? (
                 <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
                   We couldn't generate a custom explanation for this combination. The standard read: a <span style={{ color: C.text2 }}>{risk.toLowerCase()}</span> allocation in <span style={{ color: C.text2 }}>{sector}</span> across {portfolio.stocks.length} holdings, weighted toward {top.name} at {top.allocation}%, which returned about <span style={{ color: up ? C.teal : C.pink }}>{portfolio.weightedReturn.toFixed(1)}%</span> over the past 12 months.
@@ -191,6 +226,16 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
                 </ol>
               )}
             </div>
+            {onAskAdvisor && (
+              <button onClick={onAskAdvisor} className="pressable w-full text-left rounded-2xl p-4 flex items-center gap-3"
+                style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
+                <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0" style={{ backgroundColor: `${C.pink}22`, color: C.pink }}>?</span>
+                <span>
+                  <span className="block text-sm font-semibold" style={{ color: C.text }}>Ask the advisor about this portfolio</span>
+                  <span className="block text-xs" style={{ color: C.muted }}>Why these stocks? What's in the news?</span>
+                </span>
+              </button>
+            )}
             <p className="text-xs leading-relaxed px-1" style={{ color: C.muted }}>
               <strong style={{ color: C.text2, fontWeight: 600 }}>For educational purposes only.</strong>{' '}This tool does not execute trades, hold funds, or provide licensed financial advice. Historical returns do not guarantee future results.
             </p>

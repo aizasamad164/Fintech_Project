@@ -25,6 +25,7 @@ export default function HoldingItem({ stock, color, index, onOpen }: Props) {
               <div className="flex flex-wrap gap-2 mt-1">
                 <TagChip label={stock.sector} color={C.muted} />
                 <TagChip label={`Risk: ${stock.riskClass}`} color={riskColor(stock.riskClass)} />
+                {stock.mlSignal && <TagChip label={`Model: ${stock.mlSignal}`} color={stock.mlSignal === 'BUY' ? C.teal : stock.mlSignal === 'SELL' ? C.pink : C.cyan} />}
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs" style={{ color: C.muted }}>
                 <span><span style={{ color: C.text, fontWeight: 600 }}>{stock.allocation}%</span> weight</span>

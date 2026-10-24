@@ -5,11 +5,13 @@ import type { Tab } from '../../types/portfolio'
 const NAV_TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: 'portfolio', label: 'Portfolio', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="10" width="4" height="8" rx="1" fill="currentColor" opacity="0.6" /><rect x="8" y="6" width="4" height="12" rx="1" fill="currentColor" /><rect x="14" y="2" width="4" height="16" rx="1" fill="currentColor" opacity="0.8" /></svg> },
   { id: 'insights', label: 'Insights', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L12.5 8H18L13.5 11.5L15.5 18L10 14.5L4.5 18L6.5 11.5L2 8H7.5L10 2Z" fill="currentColor" opacity="0.85" /></svg> },
+  { id: 'tracking', label: 'Tracking', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 15L7 9L11 12L18 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /><circle cx="18" cy="4" r="1.8" fill="currentColor" /></svg> },
+  { id: 'advisor', label: 'Advisor', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 4.5C3 3.7 3.7 3 4.5 3H15.5C16.3 3 17 3.7 17 4.5V12.5C17 13.3 16.3 14 15.5 14H8L4 17V14H4.5C3.7 14 3 13.3 3 12.5V4.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><circle cx="7" cy="8.5" r="1" fill="currentColor" /><circle cx="10" cy="8.5" r="1" fill="currentColor" /><circle cx="13" cy="8.5" r="1" fill="currentColor" /></svg> },
   { id: 'learn', label: 'Learn', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 5C2 4 3 3 4 3H16C17 3 18 4 18 5V13C18 14 17 15 16 15H11L10 18L9 15H4C3 15 2 14 2 13V5Z" stroke="currentColor" strokeWidth="1.5" fill="none" /><line x1="5" y1="7" x2="15" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><line x1="5" y1="10" x2="12" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg> },
   { id: 'account', label: 'Account', icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" /><path d="M3 18C3 14.686 6.134 12 10 12C13.866 12 17 14.686 17 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg> },
 ]
 
-const ORDER: Tab[] = ['portfolio', 'insights', 'learn', 'account']
+const ORDER: Tab[] = ['portfolio', 'insights', 'tracking', 'advisor', 'learn', 'account']
 
 export default function NavShell({ tab, setTab, children }: { tab: Tab; setTab: (t: Tab) => void; children: ReactNode }) {
   // Moving right in the tab order pushes in from the right, and vice versa

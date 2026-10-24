@@ -23,7 +23,9 @@ export default function StockDetail({ stock, color, onBack }: { stock: Portfolio
     ['Invested', fmt(stock.dollars)],
     ['Shares', `${stock.shares}`],
     ['Share price', fmt(stock.sharePrice)],
-    ['P/E ratio', `${stock.peRatio}`],
+    stock.mlSignal
+      ? ['Model signal (5-day)', `${stock.mlSignal} · ${stock.predicted5d ?? ''}`, stock.mlSignal === 'BUY' ? C.teal : stock.mlSignal === 'SELL' ? C.pink : C.cyan]
+      : ['P/E ratio', stock.peRatio != null ? `${stock.peRatio}` : '—'],
     ['Volatility', stock.volatility, stock.volatility === 'High' ? C.pink : stock.volatility === 'Medium' ? C.cyan : C.teal],
   ]
   return (
@@ -54,6 +56,13 @@ export default function StockDetail({ stock, color, onBack }: { stock: Portfolio
           <div className="rounded-xl p-4" style={{ backgroundColor: C.surface, borderLeft: `3px solid ${color}` }}>
             <div className="text-sm font-semibold mb-1" style={{ color: C.text }}>Why it's in your portfolio</div>
             <p className="text-sm leading-relaxed" style={{ color: C.text2 }}>{WHY[stock.riskClass]}</p>
+            {stock.mlSignal && (
+              <p className="text-xs leading-relaxed mt-2" style={{ color: C.muted }}>
+                The sector model rates it <span style={{ color: C.text2, fontWeight: 600 }}>{stock.mlSignal}</span> with{' '}
+                {Math.round((stock.mlConfidence ?? 0.5) * 100)}% confidence, expecting about {stock.predicted5d} over the next 5 trading days.
+                Short-term model estimates are often wrong; treat this as one input, not a forecast.
+              </p>
+            )}
           </div>
         </div>
 

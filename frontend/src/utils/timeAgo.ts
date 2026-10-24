@@ -1,5 +1,6 @@
 // "2h ago", "3d ago" etc. from an ISO timestamp.
-export function timeAgo(iso: string, now: number = Date.now()): string {
+export function timeAgo(iso: string | null | undefined, now: number = Date.now()): string {
+  if (!iso || Number.isNaN(new Date(iso).getTime())) return 'recent'
   const s = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000))
   if (s < 60) return 'just now'
   const m = Math.floor(s / 60)
