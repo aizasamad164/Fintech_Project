@@ -31,8 +31,7 @@ from app.data.supabase_client import get_supabase  # noqa: E402
 from app.signals.pattern_detection import analyze_patterns, to_pattern_records  # noqa: E402
 from app.signals.pattern_store import save_patterns  # noqa: E402
 
-SECTORS = ("technology", "healthcare", "renewable_energy")
-
+SECTORS = ("technology", "healthcare", "renewable_energy", "pharmaceuticals")
 
 def list_tickers(sector: str | None) -> list[str]:
     query = get_supabase().table("stocks").select("ticker").eq("is_active", True)

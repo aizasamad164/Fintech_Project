@@ -21,7 +21,7 @@ from app.data.supabase_client import get_supabase
 
 logger = logging.getLogger(__name__)
 
-VALID_SECTORS = ("technology", "healthcare", "renewable_energy")
+VALID_SECTORS = ("technology", "healthcare", "renewable_energy", "pharmaceuticals")
 # ~1 trading year plus margin, so a true 1-year return can be computed.
 MIN_HISTORY_ROWS = 260
 # Yahoo/Supabase are hit in parallel; cap it so a big sector doesn't stampede them.
