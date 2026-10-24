@@ -12,15 +12,15 @@
     "cap:android": "cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2",
+    "@supabase/supabase-js": "^2.116.0",
+    "axios": "^1.7.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
-    "@supabase/supabase-js": "^2.45.4",
-    "recharts": "^2.12.7",
-    "@capacitor/core": "^6.1.2",
-    "@capacitor/ios": "^6.1.2",
-    "@capacitor/android": "^6.1.2",
-    "axios": "^1.7.7"
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2",
