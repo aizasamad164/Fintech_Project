@@ -104,7 +104,9 @@ class GlobalAllocationEngine:
         df["USD_Value"] = df["Weight"] * portfolio_value
         
         if allow_fractional:
-            df["Shares"] = (df["USD_Value"] / df["Price"]).fillna(0).round(precision)
+            # floor (not round) so the total can never exceed the budget
+            factor = 10 ** precision
+            df["Shares"] = np.floor((df["USD_Value"] / df["Price"]).fillna(0) * factor) / factor
         else:
             df["Shares"] = (df["USD_Value"] / df["Price"]).fillna(0).astype(int)
 

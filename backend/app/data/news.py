@@ -1,8 +1,25 @@
 # backend/app/data/news.py
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 import yfinance as yf
 import urllib.request
 import xml.etree.ElementTree as ET
+
+def _iso(value: Any) -> Optional[str]:
+    """Normalise yfinance epoch seconds / ISO strings / RSS dates to ISO-8601 UTC."""
+    if not value:
+        return None
+    try:
+        if isinstance(value, (int, float)):
+            return datetime.fromtimestamp(value, tz=timezone.utc).isoformat()
+        text = str(value)
+        if text[:4].isdigit():
+            return datetime.fromisoformat(text.replace("Z", "+00:00")).astimezone(timezone.utc).isoformat()
+        return parsedate_to_datetime(text).astimezone(timezone.utc).isoformat()
+    except Exception:
+        return None
+
 
 def fetch_rss_headlines(ticker: str, limit: int = 5) -> List[Dict[str, str]]:
     """
@@ -26,11 +43,16 @@ def fetch_rss_headlines(ticker: str, limit: int = 5) -> List[Dict[str, str]]:
             link = item.find("link").text if item.find("link") is not None else ""
             source_elem = item.find("source")
             publisher = source_elem.text if source_elem is not None else "Market News"
+            pub = item.find("pubDate")
+            # Google News titles end with " - Publisher"; drop the duplicate
+            if publisher and title.endswith(f" - {publisher}"):
+                title = title[: -len(publisher) - 3]
 
             articles.append({
                 "title": title,
                 "publisher": publisher,
-                "link": link
+                "link": link,
+                "published": _iso(pub.text if pub is not None else None),
             })
 
         return articles
@@ -72,7 +94,8 @@ def get_ticker_news(ticker: str, limit: int = 5) -> Dict[str, Any]:
             parsed_news.append({
                 "title": title,
                 "publisher": publisher,
-                "link": link
+                "link": link,
+                "published": _iso(item.get("providerPublishTime") or content.get("pubDate")),
             })
     except Exception as e:
         print(f"[news] yfinance lookup bypassed for {ticker_clean}: {e}")
