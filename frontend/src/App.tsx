@@ -2,7 +2,7 @@
 // and holds the shared state (budget, risk, sector, pro status).
 // All UI lives in pages/ and components/.
 import { useCallback, useState, type ReactNode } from 'react'
-import type { DashVariant, Portfolio, Risk, Screen, Sector, Tab } from './types/portfolio'
+import { DEFAULT_OPTIONS, type DashVariant, type Portfolio, type PortfolioOptions, type Risk, type Screen, type Sector, type Tab } from './types/portfolio'
 import { LESSONS } from './data/lessons'
 import { prefetchPortfolio } from './services/portfolioService'
 
@@ -29,6 +29,7 @@ export default function App() {
   const [budget, setBudget] = useState(5000)
   const [risk, setRisk] = useState<Risk>('Balanced')
   const [sector, setSector] = useState<Sector>('Technology')
+  const [opts, setOpts] = useState<PortfolioOptions>(DEFAULT_OPTIONS)   // model scope + Shariah filter
   const [dashVariant, setDashVariant] = useState<DashVariant>('success')
   const [isPro, setIsPro] = useState(false)
   const [lessonId, setLessonId] = useState<number | null>(null)
@@ -48,7 +49,7 @@ export default function App() {
   if (screen === 'login') return wrap(<Login onLogin={() => go('budget')} />)
   if (screen === 'budget') return wrap(<BudgetStep onNext={b => { setBudget(b); go('risk') }} />)
   if (screen === 'risk') return wrap(<RiskStep onNext={r => { setRisk(r); go('sector') }} onBack={() => go('budget', true)} />)
-  if (screen === 'sector') return wrap(<SectorStep onNext={s => { setSector(s); prefetchPortfolio(budget, risk, s); go('processing') }} onBack={() => go('risk', true)} />)
+  if (screen === 'sector') return wrap(<SectorStep onNext={(s, o) => { setSector(s); setOpts(o); prefetchPortfolio(budget, risk, s, o); go('processing') }} onBack={() => go('risk', true)} />)
   if (screen === 'processing') return wrap(<Processing onDone={() => go('nav')} />)
 
   // Pro flow (full-screen, outside the nav)
@@ -60,8 +61,8 @@ export default function App() {
   return wrap(
     <NavShell tab={tab} setTab={setTab}>
       {tab === 'portfolio' && (
-        <Dashboard budget={budget} risk={risk} sector={sector} variant={dashVariant}
-          onVariant={setDashVariant} onRisk={setRisk} onSector={setSector} onBudget={setBudget}
+        <Dashboard budget={budget} risk={risk} sector={sector} opts={opts} variant={dashVariant}
+          onOpts={setOpts} onVariant={setDashVariant} onRisk={setRisk} onSector={setSector} onBudget={setBudget}
           onPortfolio={setDashPortfolio} onOpenTracking={() => setTab('tracking')}
           onAskAdvisor={() => { setAdvisorPortfolioId(null); setTab('advisor') }} />
       )}

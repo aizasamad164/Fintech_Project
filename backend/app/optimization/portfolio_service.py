@@ -22,11 +22,14 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 
+from app.compliance import shariah
 from app.data.company_names import company_name
 from app.data.price_history import get_histories
 from app.ml_config import RISK_PROFILES, SECTOR_CONFIGS
 from app.optimization.global_optimizer import GlobalAllocationEngine
+from app.signals.global_signals import predict_global_signal
 from app.signals.models.model_loader import normalise_sector, score_tickers
+from app.signals.signal_router import VALID_SCOPES, normalize_scope
 
 DEFAULT_SECTOR_MAP = {sector: cfg["tickers"] for sector, cfg in SECTOR_CONFIGS.items()}
 TRADING_DAYS = 252
@@ -88,12 +91,43 @@ def _ticker_stats(df: pd.DataFrame) -> Dict[str, Any]:
     }
 
 
-def _empty_result(portfolio_value: float, target_sector: Optional[str], risk: str, message: str) -> Dict[str, Any]:
+def _global_preds(tickers: List[str], risk: str) -> tuple[Dict[str, Dict[str, Any]], List[str]]:
+    """Scores from the global (cross-sector) clustering model, shaped like the
+    sector model's output so the ranking / sizing code below can stay the same.
+
+    The global model only gives a probability, so it stands in for both the
+    "predicted return" and the risk-adjusted score (higher = more bullish).
+    Tickers it doesn't cover are marked covered=False and left out later.
+    The risk strategy picks the model's conservative / balanced / aggressive variant."""
+    preds: Dict[str, Dict[str, Any]] = {}
+    notes: List[str] = []
+    for t in tickers:
+        r = predict_global_signal(t, risk)
+        prob = r.get("bullish_probability")
+        msg = r.get("message")
+        if prob is None:
+            preds[t] = {"covered": False}
+            if msg and "not in the global model" not in msg and msg not in notes:
+                notes.append(msg)  # e.g. signals file missing
+            continue
+        if msg and msg not in notes:
+            notes.append(msg)      # e.g. signals are stale
+        preds[t] = {
+            "covered": True, "signal": r["signal"], "confidence": r["confidence"],
+            "predicted_return": float(prob), "risk_adjusted_score": float(prob),
+            "predicted_5d_return": "n/a (global model)",
+        }
+    return preds, notes
+
+
+def _empty_result(portfolio_value: float, target_sector: Optional[str], risk: str, message: str,
+                  extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     return {
         "status": "warning",
         "message": message,
         "target_sector": target_sector or "All",
         "risk_strategy": risk,
+        **(extra or {}),
         "allocations": [],
         "summary": {"total_portfolio_value": portfolio_value, "allocated_value": 0.0,
                     "cash_remaining": portfolio_value, "positions_count": 0},
@@ -109,7 +143,17 @@ def rebalance_sync(
     top_n: Optional[int] = None,
     allow_fractional: bool = True,
     risk_strategy: Optional[str] = "balanced",
+    model_scope: Optional[str] = "sector",
+    shariah_only: bool = False,
 ) -> Dict[str, Any]:
+    """model_scope: "sector" (default) scores each sector with its own model;
+    "global" uses the cross-sector clustering model instead.
+    shariah_only: restrict the universe to Shariah-compliant stocks first
+    (see app/compliance/shariah.py). Both default to the original behaviour."""
+    scope = normalize_scope(model_scope)
+    if scope is None:
+        return _empty_result(portfolio_value, target_sector, _risk_key(risk_strategy),
+                             f"Unknown model_scope '{model_scope}'. Use one of: {', '.join(VALID_SCOPES)}.")
     risk = _risk_key(risk_strategy)
     strat = STRATEGY[risk]
     top_n = int(top_n or strat["top_n"])
@@ -117,16 +161,44 @@ def rebalance_sync(
     asset_cap = max_asset_cap or strat["asset_cap"]
 
     active = _resolve_sectors(target_sector, sector_map or DEFAULT_SECTOR_MAP)
+    notes: List[str] = []
+    extra: Dict[str, Any] = {"model_scope": scope, "shariah_only": bool(shariah_only)}
+    if shariah_only:
+        before = [t for ts in active.values() for t in ts]
+        active, excluded = shariah.filter_sector_map(active)
+        info = shariah.info()
+        extra["shariah"] = {
+            "as_of": info.get("as_of"), "excluded_count": len(excluded), "excluded": excluded,
+            "disclaimer": info.get("disclaimer"),
+        }
+        if info.get("warning"):
+            notes.append(info["warning"])
+        if not active:
+            return _empty_result(
+                portfolio_value, target_sector, risk,
+                "No Shariah-compliant stocks are available for this selection."
+                if info.get("available") else info["message"], extra)
+        if len(before) and len(excluded):
+            notes.append(f"Shariah filter removed {len(excluded)} of {len(before)} stocks.")
     all_tickers = [t for ts in active.values() for t in ts]
     histories = get_histories(all_tickers)
     if not histories:
         return _empty_result(portfolio_value, target_sector, risk,
-                             "Market data is unavailable right now. Check your internet connection and try again.")
+                             "Market data is unavailable right now. Check your internet connection and try again.",
+                             extra)
 
-    # 1. Score each sector with its own model (ranking is within-sector, as trained)
+    # 1. Score: each sector with its own model (ranking is within-sector, as trained),
+    #    or everything at once with the global clustering model
     preds: Dict[str, Dict[str, Any]] = {}
-    for sector, tickers in active.items():
-        preds.update(score_tickers(tickers, sector))
+    if scope == "global":
+        preds, global_notes = _global_preds(all_tickers, risk)
+        notes.extend(n for n in global_notes if n not in notes)
+        skipped = [t for t in all_tickers if not preds[t]["covered"]]
+        if skipped:
+            notes.append(f"Not covered by the global model (left out): {', '.join(skipped)}")
+    else:
+        for sector, tickers in active.items():
+            preds.update(score_tickers(tickers, sector))
 
     # 2. Build candidate table
     max_daily_vol = RISK_PROFILES[risk]["max_volatility"]
@@ -135,6 +207,8 @@ def rebalance_sync(
     for sector, tickers in active.items():
         for t in tickers:
             if t not in histories or len(histories[t]) < 60:
+                continue
+            if scope == "global" and not preds.get(t, {}).get("covered"):
                 continue
             stats[t] = _ticker_stats(histories[t])
             p = preds.get(t, {})
@@ -148,7 +222,9 @@ def rebalance_sync(
                 "too_volatile": daily_vol > max_daily_vol,
             })
     if not rows:
-        return _empty_result(portfolio_value, target_sector, risk, "Not enough price history to build a portfolio.")
+        return _empty_result(portfolio_value, target_sector, risk,
+                             "Not enough price history or model coverage to build a portfolio.",
+                             {**extra, "notes": notes})
 
     cand = pd.DataFrame(rows)
     cand["tier"] = cand["signal"].map({"BUY": 0, "HOLD": 1, "SELL": 2}).fillna(1)
@@ -219,6 +295,7 @@ def rebalance_sync(
             "volatility": vol_label,
             "risk_class": _risk_class(vol_label),
             "trend": st["trend"],
+            "ml_model": scope,
             "ml_signal": p.get("signal", "HOLD"),
             "ml_confidence": p.get("confidence", 0.5),
             "predicted_5d_return": p.get("predicted_5d_return", "0.0%"),
@@ -247,6 +324,8 @@ def rebalance_sync(
         "target_sector": target_sector or "All",
         "risk_strategy": risk,
         "allow_fractional": allow_fractional,
+        **extra,
+        "notes": notes,
         "as_of": max(stats[t]["last_date"] for t in picks),
         "summary": {
             "total_portfolio_value": portfolio_value,

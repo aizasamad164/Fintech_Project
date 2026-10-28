@@ -12,10 +12,11 @@ import RiskGauge from '../components/charts/RiskGauge'
 import HistChart from '../components/charts/HistChart'
 import StockDetail from './StockDetail'
 import { savePortfolio } from '../services/trackingService'
-import type { DashVariant, Portfolio, Risk, Sector } from '../types/portfolio'
+import { DEFAULT_OPTIONS, type DashVariant, type Portfolio, type PortfolioOptions, type Risk, type Sector } from '../types/portfolio'
 
 interface Props {
   budget: number; risk: Risk; sector: Sector; variant: DashVariant
+  opts?: PortfolioOptions; onOpts?: (o: PortfolioOptions) => void   // optional: model scope + Shariah filter
   onVariant: (v: DashVariant) => void
   onRisk: (r: Risk) => void; onSector: (s: Sector) => void; onBudget: (b: number) => void
   onPortfolio?: (p: Portfolio | null) => void   // lets the Advisor tab see what's on screen
@@ -27,8 +28,8 @@ type Detail = { ticker: string; origin: string; phase: 'open' | 'closing'; retur
 
 const tile = { backgroundColor: C.surface, border: `1px solid ${C.border}` }
 
-export default function Dashboard({ budget, risk, sector, variant, onVariant, onRisk, onSector, onBudget, onPortfolio, onOpenTracking, onAskAdvisor }: Props) {
-  const { portfolio, loading, error } = useGeneratedPortfolio(budget, risk, sector)
+export default function Dashboard({ budget, risk, sector, opts = DEFAULT_OPTIONS, onOpts = () => {}, variant, onVariant, onRisk, onSector, onBudget, onPortfolio, onOpenTracking, onAskAdvisor }: Props) {
+  const { portfolio, loading, error } = useGeneratedPortfolio(budget, risk, sector, opts)
   const [animKey, setAnimKey] = useState(0)
   const [adjustOpen, setAdjustOpen] = useState(false)
   const [detail, setDetail] = useState<Detail | null>(null)
@@ -97,6 +98,8 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
         <TagChip label={fmt(budget)} color={C.violet} />
         <TagChip label={risk} color={riskColor(risk)} />
         <TagChip label={sector} color={C.cyan} />
+        {opts.model === 'global' && <TagChip label="Global model" color={C.violet} />}
+        {opts.shariah && <TagChip label="Shariah-compliant" color={C.teal} />}
         {variant === 'stale' && <TagChip label="Saved data" color={C.pink} />}
         <button onClick={() => setAdjustOpen(o => !o)} className="pressable inline-flex items-center px-2.5 py-1 text-xs rounded-full font-medium"
           style={{ backgroundColor: adjustOpen ? `${C.pink}25` : `${C.pink}12`, color: C.pink, border: `1px solid ${C.pink}40` }}>
@@ -116,7 +119,15 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
       {save.state === 'error' && (
         <div className="mt-2 text-xs" style={{ color: C.pink }}>Couldn't save: {save.msg}</div>
       )}
-      {adjustOpen && <AdjustPanel risk={risk} sector={sector} budget={budget} onRisk={onRisk} onSector={onSector} onBudget={onBudget} onClose={() => setAdjustOpen(false)} />}
+      {adjustOpen && <AdjustPanel risk={risk} sector={sector} budget={budget} opts={opts} onOpts={onOpts} onRisk={onRisk} onSector={onSector} onBudget={onBudget} onClose={() => setAdjustOpen(false)} />}
+      {portfolio?.shariah && (
+        <div className="mt-3 px-4 py-2 rounded-lg text-xs fade-in" style={{ backgroundColor: `${C.teal}12`, border: `1px solid ${C.teal}30`, color: C.muted }}>
+          Screened for Shariah compliance{portfolio.shariah.asOf ? ` as of ${portfolio.shariah.asOf}` : ''}; {portfolio.shariah.excludedCount} stocks were left out. {portfolio.shariah.disclaimer}
+        </div>
+      )}
+      {portfolio?.notes?.filter(n => !n.startsWith('Shariah filter removed')).map(n => (
+        <div key={n} className="mt-2 px-4 py-2 rounded-lg text-xs fade-in" style={{ backgroundColor: `${C.pink}12`, border: `1px solid ${C.pink}30`, color: C.muted }}>{n}</div>
+      ))}
       {variant === 'stale' && (
         <div className="mt-3 px-4 py-2 rounded-lg text-xs fade-in" style={{ backgroundColor: `${C.pink}12`, border: `1px solid ${C.pink}30`, color: C.muted }}>
           Last updated Aug 30, 2026 — showing saved data. Live prices may differ.

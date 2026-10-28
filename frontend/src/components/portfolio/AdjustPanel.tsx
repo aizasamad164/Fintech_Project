@@ -1,17 +1,19 @@
 import { C } from '../../theme/tokens'
 import { fmt } from '../../utils/format'
 import { RISKS, SECTORS } from '../../data/options'
-import type { Risk, Sector } from '../../types/portfolio'
+import ModelOptions from './ModelOptions'
+import type { PortfolioOptions, Risk, Sector } from '../../types/portfolio'
 
 interface Props {
   risk: Risk; sector: Sector; budget: number
+  opts: PortfolioOptions; onOpts: (o: PortfolioOptions) => void
   onRisk: (r: Risk) => void; onSector: (s: Sector) => void; onBudget: (b: number) => void
   onClose: () => void
 }
 
 const label = { color: C.muted, letterSpacing: '0.05em' }
 
-export default function AdjustPanel({ risk, sector, budget, onRisk, onSector, onBudget, onClose }: Props) {
+export default function AdjustPanel({ risk, sector, budget, opts, onOpts, onRisk, onSector, onBudget, onClose }: Props) {
   return (
     <div className="rounded-xl p-5 mt-3 fade-up" style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
       <div className="flex items-center justify-between mb-5">
@@ -52,6 +54,7 @@ export default function AdjustPanel({ risk, sector, budget, onRisk, onSector, on
             ))}
           </div>
         </div>
+        <ModelOptions value={opts} onChange={onOpts} />
       </div>
     </div>
   )

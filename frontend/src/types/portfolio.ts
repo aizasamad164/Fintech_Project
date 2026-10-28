@@ -6,6 +6,11 @@ export type Risk = 'Conservative' | 'Balanced' | 'Aggressive'
 export type Sector = 'Technology' | 'Healthcare' | 'Renewable Energy' | 'Pharmaceuticals' | 'Multi-Sector'
 export type DashVariant = 'success' | 'no-explanation' | 'stale'
 
+// Optional extras on top of budget / risk / sector. Defaults reproduce the original behaviour.
+export type ModelScope = 'sector' | 'global'   // per-sector models | one cross-sector (global) model
+export interface PortfolioOptions { model: ModelScope; shariah: boolean }
+export const DEFAULT_OPTIONS: PortfolioOptions = { model: 'sector', shariah: false }
+
 export interface StockDef {
   ticker: string
   name: string
@@ -41,6 +46,9 @@ export interface Portfolio {
   sector?: Sector
   asOf?: string
   explanationSource?: 'llm' | 'fallback' | 'none' | 'mock'
+  options?: PortfolioOptions
+  notes?: string[]
+  shariah?: { asOf: string | null; excludedCount: number; disclaimer: string | null }
 }
 
 export interface NewsItem {

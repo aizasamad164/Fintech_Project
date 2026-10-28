@@ -10,6 +10,7 @@ import asyncio
 import logging
 import time
 
+from app.compliance import shariah
 from app.core.exceptions import InsufficientDataError
 from app.data.price_history import get_candidates, load_price_history, resolve_sectors
 from app.optimization.allocator import normalize_risk_profile, optimize_portfolio
@@ -33,6 +34,7 @@ async def build_recommendation(
     *,
     fractional_shares: bool = True,
     confidence_scores: dict[str, float] | None = None,
+    shariah_only: bool = False,
 ) -> dict:
     start = time.perf_counter()
     risk_profile = normalize_risk_profile(risk_profile)
@@ -43,6 +45,10 @@ async def build_recommendation(
         raise InsufficientDataError(
             "No stocks found for the selected sectors. Seed public.stocks (migration 0003) first."
         )
+    if shariah_only:
+        candidates = [c for c in candidates if shariah.is_compliant(c["ticker"])]
+        if not candidates:
+            raise InsufficientDataError("No Shariah-compliant stocks are available for the selected sectors.")
     by_ticker = {c["ticker"]: c for c in candidates}
 
     data = await load_price_history(list(by_ticker), years=OPTIMIZATION_YEARS)
@@ -86,5 +92,6 @@ async def build_recommendation(
         "projected_return": round(project_illustrative_return(summary["invested"], performance_pct), 2),
         "price_data_as_of": str(prices.index[-1].date()),
         "skipped_tickers": data.skipped,
+        "shariah_only": shariah_only,
         "generated_in_seconds": round(time.perf_counter() - start, 3),
     }

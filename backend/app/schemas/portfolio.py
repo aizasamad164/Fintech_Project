@@ -33,6 +33,7 @@ class RecommendRequest(BaseModel):
         description="technology, healthcare, renewable_energy. Empty or ['combined'] = all sectors.",
     )
     fractional_shares: bool = True
+    shariah_only: bool = False  # restrict to Shariah-compliant stocks (optional)
 
     @field_validator("risk_profile", mode="before")
     @classmethod
@@ -56,6 +57,7 @@ class RecommendResponse(BaseModel):
     projected_return: float
     price_data_as_of: str
     skipped_tickers: dict[str, str] = Field(default_factory=dict)
+    shariah_only: bool = False
     explanation_bullets: list[str] = Field(default_factory=list)  # filled by the LLM layer (FR-5.x)
     generated_in_seconds: float
     disclaimer: str = DISCLAIMER

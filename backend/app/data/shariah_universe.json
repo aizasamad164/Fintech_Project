@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-28",
+  "rule": "A stock counts as Shariah-compliant here only if Musaffa passes it AND Zoya does not contradict it. Stocks the two screeners disagree on ('disputed'), stocks that fail, and stocks not listed here are excluded.",
+  "sources": [
+    {
+      "name": "Musaffa",
+      "method": "AAOIFI-based screening",
+      "url": "https://musaffa.com"
+    },
+    {
+      "name": "Zoya",
+      "method": "AAOIFI standard",
+      "url": "https://zoya.finance"
+    }
+  ],
+  "disclaimer": "Screened with third-party tools, not a fatwa. Statuses change when companies report new financial statements, so re-check before investing, and consider asking a qualified scholar. Many Shariah investors also donate ('purify') the small non-permissible share of dividends.",
+  "tickers": {
+    "AAPL": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "MSFT": {
+      "sector": "Technology",
+      "musaffa": "not_halal",
+      "zoya": "questionable",
+      "status": "disputed",
+      "note": "Musaffa fails it; Zoya marks it 'questionable'."
+    },
+    "NVDA": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "AMD": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "AVGO": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "QCOM": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "ORCL": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": "non_compliant",
+      "status": "disputed",
+      "note": "Musaffa passes it, Zoya does not."
+    },
+    "CRM": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "ADBE": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "TXN": {
+      "sector": "Technology",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "UNH": {
+      "sector": "Healthcare",
+      "musaffa": "not_halal",
+      "zoya": null,
+      "status": "non_compliant"
+    },
+    "JNJ": {
+      "sector": "Healthcare",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "PFE": {
+      "sector": "Healthcare",
+      "musaffa": "not_halal",
+      "zoya": null,
+      "status": "non_compliant"
+    },
+    "ABT": {
+      "sector": "Healthcare",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "MRK": {
+      "sector": "Healthcare",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "TMO": {
+      "sector": "Healthcare",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "DHR": {
+      "sector": "Healthcare",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "ISRG": {
+      "sector": "Healthcare",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "MDT": {
+      "sector": "Healthcare",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "SYK": {
+      "sector": "Healthcare",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "LLY": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "BMY": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "not_halal",
+      "zoya": "non_compliant",
+      "status": "non_compliant"
+    },
+    "NVO": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "AZN": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "NVS": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "AMGN": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "not_halal",
+      "zoya": "compliant",
+      "status": "disputed",
+      "note": "Musaffa fails it, Zoya passes it."
+    },
+    "GILD": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "REGN": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "not_halal",
+      "zoya": "compliant",
+      "status": "disputed",
+      "note": "Musaffa fails it; Zoya passes it with interest income at about 5% of revenue (the usual limit)."
+    },
+    "VRTX": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "SNY": {
+      "sector": "Pharmaceuticals",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "ENPH": {
+      "sector": "Renewable_Energy",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "FSLR": {
+      "sector": "Renewable_Energy",
+      "musaffa": "halal",
+      "zoya": "compliant",
+      "status": "compliant"
+    },
+    "NEE": {
+      "sector": "Renewable_Energy",
+      "musaffa": "not_halal",
+      "zoya": "non_compliant",
+      "status": "non_compliant"
+    },
+    "SEDG": {
+      "sector": "Renewable_Energy",
+      "musaffa": "halal",
+      "zoya": null,
+      "status": "compliant"
+    },
+    "RUN": {
+      "sector": "Renewable_Energy",
+      "musaffa": "not_halal",
+      "zoya": "non_compliant",
+      "status": "non_compliant"
+    },
+    "BEP": {
+      "sector": "Renewable_Energy",
+      "musaffa": "not_halal",
+      "zoya": "non_compliant",
+      "status": "non_compliant"
+    },
+    "CWEN": {
+      "sector": "Renewable_Energy",
+      "musaffa": "not_halal",
+      "zoya": "non_compliant",
+      "status": "non_compliant"
+    },
+    "HASI": {
+      "sector": "Renewable_Energy",
+      "musaffa": "not_halal",
+      "zoya": "non_compliant",
+      "status": "non_compliant"
+    },
+    "PLUG": {
+      "sector": "Renewable_Energy",
+      "musaffa": "not_halal",
+      "zoya": "compliant",
+      "status": "disputed",
+      "note": "Musaffa fails it, Zoya passes it."
+    },
+    "BLDP": {
+      "sector": "Renewable_Energy",
+      "musaffa": "not_halal",
+      "zoya": null,
+      "status": "non_compliant"
+    }
+  }
+}

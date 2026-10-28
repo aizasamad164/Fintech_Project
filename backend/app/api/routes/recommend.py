@@ -25,6 +25,7 @@ async def recommend(request: RecommendRequest) -> dict:
             risk_profile=request.risk_profile,
             sectors=request.sectors,
             fractional_shares=request.fractional_shares,
+            shariah_only=request.shariah_only,
         )
     except InsufficientDataError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc

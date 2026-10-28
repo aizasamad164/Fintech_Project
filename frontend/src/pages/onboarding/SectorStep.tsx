@@ -4,10 +4,12 @@ import { SECTOR_OPTS } from '../../data/options'
 import OnboardShell from '../../components/layout/OnboardShell'
 import StepBar from '../../components/layout/StepBar'
 import { CyanBtn, GhostBtn } from '../../components/ui/Buttons'
-import type { Sector } from '../../types/portfolio'
+import ModelOptions from '../../components/portfolio/ModelOptions'
+import { DEFAULT_OPTIONS, type PortfolioOptions, type Sector } from '../../types/portfolio'
 
-export default function SectorStep({ onNext, onBack }: { onNext: (s: Sector) => void; onBack: () => void }) {
+export default function SectorStep({ onNext, onBack }: { onNext: (s: Sector, o: PortfolioOptions) => void; onBack: () => void }) {
   const [sel, setSel] = useState<Sector | null>(null)
+  const [opts, setOpts] = useState<PortfolioOptions>(DEFAULT_OPTIONS)
   return (
     <OnboardShell>
       <StepBar step={3} />
@@ -24,9 +26,10 @@ export default function SectorStep({ onNext, onBack }: { onNext: (s: Sector) => 
           </button>
         ))}
       </div>
+      <div className="mb-8 fade-up d5"><ModelOptions value={opts} onChange={setOpts} /></div>
       <div className="flex gap-3 fade-up d5">
         <GhostBtn onClick={onBack}>Back</GhostBtn>
-        <CyanBtn onClick={() => sel && onNext(sel)} disabled={!sel}>Generate portfolio</CyanBtn>
+        <CyanBtn onClick={() => sel && onNext(sel, opts)} disabled={!sel}>Generate portfolio</CyanBtn>
       </div>
     </OnboardShell>
   )
