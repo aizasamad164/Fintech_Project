@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { C, DISPLAY } from '../theme/tokens'
+import { C, HEADING } from '../theme/tokens'
 import { fmt } from '../utils/format'
 import { timeAgo } from '../utils/timeAgo'
 import PageHeader from '../components/ui/PageHeader'
@@ -51,10 +51,10 @@ export default function Tracking({ onAskAdvisor, onBuild }: Props) {
   if (list.length === 0) {
     return (
       <Shell>
-        <div className="glass rounded-3xl p-10 text-center" style={{ border: `2px dashed ${C.border}` }}>
-          <div className="text-3xl mb-2" style={{ fontFamily: DISPLAY, color: C.text }}>Nothing saved yet</div>
+        <div className="glass rounded-2xl p-10 text-center" style={{ border: `2px dashed ${C.border}` }}>
+          <div className="text-2xl mb-2" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>Nothing saved yet</div>
           <p className="text-lg font-semibold mb-6" style={{ color: C.text2 }}>Build a portfolio, then tap <b style={{ color: C.cyan }}>Save &amp; track</b> to follow how it does at today's prices.</p>
-          <button onClick={onBuild} className="cta px-8 py-4 rounded-2xl text-base font-bold" style={{ backgroundColor: C.cyan, color: C.canvas }}>Go to Portfolio →</button>
+          <button onClick={onBuild} className="cta px-8 py-3.5 rounded-xl text-[0.95rem] font-semibold" style={{ backgroundColor: C.cyan, color: C.canvas }}>Go to Portfolio →</button>
         </div>
       </Shell>
     )
@@ -85,7 +85,7 @@ export default function Tracking({ onAskAdvisor, onBuild }: Props) {
       {current && (
         <>
           {/* Hero: value now + actions */}
-          <section className="glass relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center fade-up"
+          <section className="glass relative overflow-hidden rounded-2xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center fade-up"
             style={{ border: `1px solid ${C.border}`, boxShadow: `0 30px 80px -40px ${gl}` }}>
             <div className="absolute -top-24 -right-16 w-80 h-80 rounded-full pointer-events-none" aria-hidden
               style={{ background: `radial-gradient(circle, ${gl}2e 0%, transparent 70%)` }} />
@@ -96,12 +96,12 @@ export default function Tracking({ onAskAdvisor, onBuild }: Props) {
                 {s && s.stale_prices > 0 && <TagChip label={`${s.stale_prices} price${s.stale_prices > 1 ? 's' : ''} not live`} color={C.pink} />}
               </div>
               <div className="text-sm font-bold uppercase mb-2" style={{ color: C.muted, letterSpacing: '0.09em' }}>Worth at today's prices</div>
-              <div className="leading-none mb-3" style={{ fontFamily: DISPLAY, color: C.text, fontSize: 'clamp(3rem, 7vw, 5rem)' }}>
+              <div className="leading-none mb-3" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text, fontSize: 'clamp(2.3rem, 4.2vw, 3.2rem)' }}>
                 {s ? money(s.current_value) : '…'}
               </div>
               {s && (
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <span className="text-2xl font-bold px-3 py-1 rounded-xl" style={{ color: C.canvas, backgroundColor: gl }}>
+                  <span className="text-lg font-semibold px-2.5 py-1 rounded-lg" style={{ color: C.canvas, backgroundColor: gl }}>
                     {signed(s.total_gain_loss_usd).replace(/^([+-])/, '$1$')} ({signed(s.total_gain_loss_pct, '%')})
                   </span>
                   <span className="text-base font-semibold" style={{ color: C.text2 }}>since you saved it · you put in {money(s.total_invested)}</span>
@@ -109,9 +109,9 @@ export default function Tracking({ onAskAdvisor, onBuild }: Props) {
               )}
             </div>
             <div className="relative flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-72 flex-shrink-0">
-              <button onClick={() => onAskAdvisor(current.id)} className="cta px-6 py-4 rounded-2xl text-base font-bold"
+              <button onClick={() => onAskAdvisor(current.id)} className="cta px-6 py-3.5 rounded-xl text-[0.95rem] font-semibold"
                 style={{ backgroundColor: C.pink, color: C.canvas, ['--glow' as string]: C.pink }}>Why is it up or down?</button>
-              <button onClick={() => refresh(current.id)} disabled={loadingPerf} className="cta px-6 py-4 rounded-2xl text-base font-bold disabled:opacity-60"
+              <button onClick={() => refresh(current.id)} disabled={loadingPerf} className="cta px-6 py-3.5 rounded-xl text-[0.95rem] font-semibold disabled:opacity-60"
                 style={{ backgroundColor: C.cyan, color: C.canvas }}>{loadingPerf ? 'Refreshing…' : 'Refresh prices'}</button>
               <button onClick={() => remove(current.id)} className="pressable px-6 py-3 rounded-2xl text-sm font-bold"
                 style={{ color: C.text2, border: `2px solid ${C.border}` }}>Remove portfolio</button>
@@ -123,25 +123,25 @@ export default function Tracking({ onAskAdvisor, onBuild }: Props) {
           </p>
 
           {/* Holdings, side by side */}
-          <h2 className="text-3xl mt-10 mb-4" style={{ fontFamily: DISPLAY, color: C.text }}>How each stock is doing</h2>
+          <h2 className="text-2xl mt-10 mb-4" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>How each stock is doing</h2>
           {error && <p className="text-base font-bold mb-3" style={{ color: C.pink }} role="alert">{error}</p>}
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             {(perf?.holdings ?? []).map((h, i) => {
               const c = accent(h.gain_loss_usd)
               const total = Math.max(s?.current_value ?? 0, 1)
               return (
-                <div key={h.ticker} className={`fill-hover glass rounded-2xl p-5 fade-up d${Math.min(i + 2, 8)}`}
+                <div key={h.ticker} className={`tint-fill glass rounded-2xl p-5 fade-up d${Math.min(i + 2, 8)}`}
                   style={{ ['--fill' as string]: c, border: `2px solid ${C.border}` }}>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div className="min-w-0">
-                      <div className="text-lg font-bold" style={{ color: C.text }}>{h.ticker}</div>
+                      <div className="text-base font-semibold" style={{ color: C.text }}>{h.ticker}</div>
                       <div className="text-sm font-semibold truncate" style={{ color: C.muted }}>{h.name}</div>
                     </div>
                     <span className="on-fill-bg text-sm font-bold px-2.5 py-1 rounded-full flex-shrink-0" style={{ color: c, backgroundColor: `${c}22` }}>
                       {signed(h.gain_loss_pct, '%')}
                     </span>
                   </div>
-                  <div className="text-3xl font-bold" style={{ color: C.text }}>{money(h.current_value)}</div>
+                  <div className="text-2xl" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>{money(h.current_value)}</div>
                   <div className="text-base font-bold mt-1" style={{ color: c }}>{signed(h.gain_loss_usd).replace(/^([+-])/, '$1$')} since saved</div>
                   <div className="on-fill-track mt-3 h-2 rounded-full overflow-hidden" style={{ backgroundColor: C.border }}>
                     <div className="on-fill-bar h-full rounded-full" style={{ width: `${(h.current_value / total) * 100}%`, backgroundColor: c }} />

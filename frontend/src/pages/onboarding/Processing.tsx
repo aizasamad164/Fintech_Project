@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { C, DISPLAY, ORBIT_COLORS } from '../../theme/tokens'
+import { C, HEADING, ORBIT_COLORS } from '../../theme/tokens'
 import LiveBackdrop from '../../components/effects/LiveBackdrop'
 
 const PROC_STEPS = ['Fetching market data', 'Scoring candidates', 'Optimizing allocation', 'Writing your explanation']
@@ -25,9 +25,9 @@ export default function Processing({ onDone }: { onDone: () => void }) {
       <LiveBackdrop />
       <div className="relative flex flex-col items-center text-center w-full max-w-md" style={{ zIndex: 1 }} role="status" aria-live="polite">
         {/* Radar */}
-        <div className="relative mb-10 radar-glow">
+        <div className="relative mb-8 radar-glow">
           <div className="absolute inset-6 rounded-full" style={{ background: `radial-gradient(circle, ${C.cyan}22 0%, transparent 70%)` }} aria-hidden />
-          <svg viewBox="0 0 300 300" className="relative w-[260px] h-[260px] sm:w-[300px] sm:h-[300px]" aria-hidden>
+          <svg viewBox="0 0 300 300" className="relative w-[220px] h-[220px] sm:w-[250px] sm:h-[250px]" aria-hidden>
             <defs>
               <filter id="ring-glow" x="-30%" y="-30%" width="160%" height="160%">
                 <feGaussianBlur stdDeviation="5" result="b" />
@@ -47,8 +47,8 @@ export default function Processing({ onDone }: { onDone: () => void }) {
               const on = active >= i
               return (
                 <g key={i}>
-                  <circle cx={150} cy={150} r={R} fill="none" stroke={C.border} strokeWidth="9" opacity={0.6} />
-                  <circle cx={150} cy={150} r={R} fill="none" strokeWidth="9" strokeLinecap="round" filter="url(#ring-glow)"
+                  <circle cx={150} cy={150} r={R} fill="none" stroke={C.border} strokeWidth="7" opacity={0.6} />
+                  <circle cx={150} cy={150} r={R} fill="none" strokeWidth="7" strokeLinecap="round" filter="url(#ring-glow)"
                     stroke={ORBIT_COLORS[i]} strokeDasharray={circ} strokeDashoffset={on ? 0 : circ}
                     transform="rotate(-90 150 150)"
                     style={{ transition: `stroke-dashoffset ${SWEEP_MS}ms cubic-bezier(0.65, 0, 0.35, 1)` }} />
@@ -59,18 +59,18 @@ export default function Processing({ onDone }: { onDone: () => void }) {
           </svg>
         </div>
 
-        <div className="text-3xl sm:text-4xl mb-8" style={{ fontFamily: DISPLAY, color: C.text }}>Building your portfolio…</div>
+        <div className="text-2xl font-semibold mb-7" style={{ fontFamily: HEADING, color: C.text, letterSpacing: '-0.02em' }}>Building your portfolio…</div>
 
-        <div className="glass rounded-2xl px-6 py-5 w-full space-y-4 text-left" style={{ border: `1px solid ${C.border}` }}>
+        <div className="glass rounded-xl px-6 py-5 w-full max-w-sm space-y-3.5 text-left" style={{ border: `1px solid ${C.border}` }}>
           {PROC_STEPS.map((s, i) => {
             const done = i <= active
             return (
               <div key={s} className="flex items-center gap-3 transition-all duration-500" style={{ opacity: done ? 1 : i === active + 1 ? 0.65 : 0.35 }}>
-                <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center transition-all"
+                <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center transition-all"
                   style={{ backgroundColor: done ? ORBIT_COLORS[i] : C.border, boxShadow: done ? `0 0 14px ${ORBIT_COLORS[i]}` : 'none' }}>
-                  {done && <span className="text-xs font-bold check-pop" style={{ color: C.canvas }}>✓</span>}
+                  {done && <span className="text-[10px] font-bold check-pop" style={{ color: C.canvas }}>✓</span>}
                 </div>
-                <span className="text-base font-bold" style={{ color: done ? C.text : C.text2 }}>{s}</span>
+                <span className="text-sm font-semibold" style={{ color: done ? C.text : C.text2 }}>{s}</span>
               </div>
             )
           })}

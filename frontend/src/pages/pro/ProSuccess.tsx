@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { C } from '../../theme/tokens'
+import { C, HEADING } from '../../theme/tokens'
 import LiveBackdrop from '../../components/effects/LiveBackdrop'
 
 export default function ProSuccess({ onDone }: { onDone: () => void }) {
@@ -14,7 +14,7 @@ export default function ProSuccess({ onDone }: { onDone: () => void }) {
         style={{ background: 'linear-gradient(135deg, #F535AA 0%, #8B7FF0 50%, #4FD8E8 100%)' }}>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 12L10 17L19 8" stroke={C.canvas} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </div>
-      <h2 className="text-4xl mb-3 fade-up d2" style={{ fontFamily: "'DM Serif Display'", color: C.text }}>You're on Pro now</h2>
+      <h2 className="text-3xl mb-3 fade-up d2" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.02em', color: C.text }}>You're on Pro now</h2>
       <p className="text-lg font-semibold mb-6 fade-up d3" style={{ color: C.text2, maxWidth: 340 }}>Every sector is now unlocked. Taking you back now.</p>
       <div className="flex gap-1 fade-up d4">
         {[0, 1, 2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: C.cyan, animationDelay: `${i * 0.2}s` }} />)}

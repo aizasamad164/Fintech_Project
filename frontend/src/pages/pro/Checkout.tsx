@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { C } from '../../theme/tokens'
+import { C, HEADING } from '../../theme/tokens'
 import LiveBackdrop from '../../components/effects/LiveBackdrop'
 import { BackLink } from '../../components/ui/Buttons'
 
@@ -15,7 +15,7 @@ export default function Checkout({ onSuccess, onBack }: { onSuccess: () => void;
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-5 py-12" style={{ backgroundColor: C.canvas }}>
       <LiveBackdrop />
-      <div className="relative w-full max-w-md glass rounded-3xl p-7" style={{ zIndex: 1, border: `1px solid ${C.border}` }}>
+      <div className="relative w-full max-w-md glass rounded-2xl p-7" style={{ zIndex: 1, border: `1px solid ${C.border}` }}>
         <BackLink onClick={onBack} />
         <div className="p-4 rounded-xl mb-6 fade-up" style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}>
           <div className="flex items-center justify-between">
@@ -23,7 +23,7 @@ export default function Checkout({ onSuccess, onBack }: { onSuccess: () => void;
               <div className="text-base font-bold" style={{ color: C.text }}>StockSense Pro</div>
               <div className="text-sm mt-0.5" style={{ color: C.muted }}>Monthly subscription · cancel anytime</div>
             </div>
-            <div className="text-lg font-bold" style={{ fontFamily: "'DM Serif Display'", color: C.text }}>$9.00</div>
+            <div className="text-base font-semibold" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.02em', color: C.text }}>$9.00</div>
           </div>
           <div className="mt-3 pt-3 flex items-center justify-between text-sm" style={{ borderTop: `1px solid ${C.border}`, color: C.muted }}>
             <span>Total due today</span><span style={{ color: C.text, fontWeight: 600 }}>$9.00</span>

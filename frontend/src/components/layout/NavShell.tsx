@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, type ReactNode } from 'react'
-import { C, DISPLAY } from '../../theme/tokens'
+import { C, HEADING } from '../../theme/tokens'
 import LiveBackdrop from '../effects/LiveBackdrop'
 import type { Tab } from '../../types/portfolio'
 
@@ -36,7 +36,7 @@ export default function NavShell({ tab, setTab, children, isPro = false }: { tab
             <circle cx="14" cy="14" r="7" fill="none" stroke={C.pink} strokeWidth="2.5" strokeDasharray="20 24" strokeLinecap="round" />
             <circle cx="14" cy="14" r="2" fill={C.text} />
           </svg>
-          <span className="text-xl hidden sm:block" style={{ fontFamily: DISPLAY, color: C.text }}>StockSense</span>
+          <span className="text-xl hidden sm:block" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>StockSense</span>
         </button>
 
         {/* Desktop tabs */}

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type AnimationEvent } from 'react'
-import { C, DISPLAY, riskColor } from '../theme/tokens'
+import { C, riskColor, HEADING } from '../theme/tokens'
 import { fmt } from '../utils/format'
 import { useGeneratedPortfolio } from '../hooks/useGeneratedPortfolio'
 import TagChip from '../components/ui/TagChip'
@@ -97,19 +97,19 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
   const actions = (
     <div className="flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-64 flex-shrink-0">
       <button onClick={() => setAdjustOpen(o => !o)} aria-expanded={adjustOpen}
-        className="cta flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-base font-bold"
+        className="cta flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[0.95rem] font-semibold"
         style={{ backgroundColor: adjustOpen ? C.canvas : C.pink, color: adjustOpen ? C.pink : C.canvas,
           border: `2px solid ${C.pink}`, ['--glow' as string]: C.pink }}>
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden><path d="M3 6h9M15 6h2M3 14h2M8 14h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><circle cx="13.5" cy="6" r="2" stroke="currentColor" strokeWidth="2" /><circle cx="6.5" cy="14" r="2" stroke="currentColor" strokeWidth="2" /></svg>
         {adjustOpen ? 'Close adjust' : 'Adjust portfolio'}
       </button>
       {portfolio && (save.state === 'saved'
-        ? <button onClick={onOpenTracking} className="cta flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-base font-bold"
+        ? <button onClick={onOpenTracking} className="cta flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[0.95rem] font-semibold"
             style={{ backgroundColor: C.teal, color: C.canvas, ['--glow' as string]: C.teal }}>
             ✓ Saved · open Tracking
           </button>
         : <button onClick={doSave} disabled={save.state === 'saving'}
-            className="cta flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-base font-bold disabled:opacity-60"
+            className="cta flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-[0.95rem] font-semibold disabled:opacity-60"
             style={{ backgroundColor: C.cyan, color: C.canvas }}>
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden><path d="M5 3h8l3 3v11H5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M8 3v4h4V3M8 17v-5h5v5" stroke="currentColor" strokeWidth="2" /></svg>
             {save.state === 'saving' ? 'Saving…' : 'Save & track'}
@@ -143,7 +143,7 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
   if (error || !portfolio) {
     return (
       <div ref={rootRef} className="px-4 sm:px-8 py-6 max-w-7xl mx-auto">
-        <section className="glass rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center" style={tile}>
+        <section className="glass rounded-2xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center" style={tile}>
           <div className="flex-1">
             {chips}
             {error
@@ -172,7 +172,7 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
       <div key={animKey} style={{ opacity: loading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
 
         {/* ── 1. Hero: projected value + the two main buttons ─────────── */}
-        <section className="glass relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center fade-up"
+        <section className="glass relative overflow-hidden rounded-2xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center fade-up"
           style={{ border: `1px solid ${C.border}`, boxShadow: `0 30px 80px -40px ${riskColor(risk)}` }}>
           <div className="absolute -top-24 -right-16 w-80 h-80 rounded-full pointer-events-none" aria-hidden
             style={{ background: `radial-gradient(circle, ${riskColor(risk)}2e 0%, transparent 70%)` }} />
@@ -181,9 +181,9 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
             <div className="text-sm font-bold uppercase mt-5 mb-2" style={{ color: C.muted, letterSpacing: '0.09em' }}>
               If this mix repeats last year, in 1 year you'd have
             </div>
-            <div className="leading-none mb-3" style={{ fontFamily: DISPLAY, color: C.text, fontSize: 'clamp(3.2rem, 8vw, 5.5rem)' }}>{fmt(portfolio.projectedValue)}</div>
+            <div className="leading-none mb-3" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text, fontSize: 'clamp(2.5rem, 4.5vw, 3.6rem)' }}>{fmt(portfolio.projectedValue)}</div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="text-2xl font-bold px-3 py-1 rounded-xl" style={{ color: C.canvas, backgroundColor: up ? C.teal : C.pink }}>
+              <span className="text-lg font-semibold px-2.5 py-1 rounded-lg" style={{ color: C.canvas, backgroundColor: up ? C.teal : C.pink }}>
                 {up ? '+' : ''}{portfolio.weightedReturn.toFixed(1)}%
               </span>
               <span className="text-base font-semibold" style={{ color: C.text2 }}>
@@ -197,7 +197,7 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
 
         {/* ── 2. The three instruments, side by side ──────────────────── */}
         <div className="grid gap-5 mt-6 md:grid-cols-2 xl:grid-cols-3">
-          <section className="glass rounded-3xl p-5 scale-up d2" style={tile}>
+          <section className="glass rounded-2xl p-5 scale-up d2" style={tile}>
             <SectionLabel className="mb-1">Where your money goes</SectionLabel>
             <p className="text-sm font-semibold mb-4" style={{ color: C.muted }}>Share of your {fmt(budget)} in each stock</p>
             <div className="flex flex-col sm:flex-row md:flex-col items-center gap-5">
@@ -206,7 +206,7 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
             </div>
           </section>
 
-          <section className="glass rounded-3xl p-5 flex flex-col fade-up d3 relative overflow-hidden" style={tile}>
+          <section className="glass rounded-2xl p-5 flex flex-col fade-up d3 relative overflow-hidden" style={tile}>
             <div className="absolute inset-x-0 -bottom-16 h-40 pointer-events-none" style={{ background: `radial-gradient(ellipse at center, ${riskTone}33, transparent 70%)` }} aria-hidden />
             <SectionLabel className="mb-1">Risk rating</SectionLabel>
             <p className="text-sm font-semibold mb-2" style={{ color: C.muted }}>How much this mix tends to swing</p>
@@ -217,7 +217,7 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
             </div>
           </section>
 
-          <section className="glass rounded-3xl p-5 flex flex-col fade-up d4 md:col-span-2 xl:col-span-1" style={tile}>
+          <section className="glass rounded-2xl p-5 flex flex-col fade-up d4 md:col-span-2 xl:col-span-1" style={tile}>
             <SectionLabel className="mb-1">Past 12 months</SectionLabel>
             <p className="text-sm font-semibold mb-3" style={{ color: C.muted }}>
               <span style={{ color: C.text2 }}>{fmt(budget)}</span> would have become{' '}
@@ -230,7 +230,7 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
         {/* ── 3. The stocks, side by side ─────────────────────────────── */}
         <div className="mt-10 mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
-            <h2 className="text-3xl" style={{ fontFamily: DISPLAY, color: C.text }}>Your {portfolio.stocks.length} stocks</h2>
+            <h2 className="text-2xl" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>Your {portfolio.stocks.length} stocks</h2>
             <p className="text-base font-semibold" style={{ color: C.text2 }}>Each card shows how much of your {fmt(budget)} goes into that company. Tap one to learn more.</p>
           </div>
           <div className="flex items-center gap-3 text-xs font-bold" style={{ color: C.muted }}>
@@ -247,9 +247,9 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
 
         {/* ── 4. Plain-English read + advisor ─────────────────────────── */}
         <div className="grid gap-5 mt-10 lg:grid-cols-3">
-          <section className="glass lg:col-span-2 rounded-3xl p-6 fade-up d6" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.violet}` }}>
+          <section className="glass lg:col-span-2 rounded-2xl p-6 fade-up d6" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.violet}` }}>
             <div className="flex items-center justify-between mb-4 gap-2">
-              <h3 className="text-xl font-bold" style={{ color: C.text }}>In plain English</h3>
+              <h3 className="text-lg font-semibold" style={{ color: C.text }}>In plain English</h3>
               {portfolio.explanationSource === 'llm' && <TagChip label="AI-written" color={C.violet} />}
             </div>
             {variant === 'no-explanation' || portfolio.explanation.length === 0 ? (
@@ -272,9 +272,9 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
 
           <div className="flex flex-col gap-4">
             {onAskAdvisor && (
-              <button onClick={onAskAdvisor} className="tint-hover glass w-full text-left rounded-3xl p-5 flex items-center gap-4"
+              <button onClick={onAskAdvisor} className="tint-hover glass w-full text-left rounded-2xl p-5 flex items-center gap-4"
                 style={{ ['--fill' as string]: C.pink, border: `2px solid ${C.pink}55` }}>
-                <span className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold flex-shrink-0" style={{ backgroundColor: C.pink, color: C.canvas }}>?</span>
+                <span className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-semibold flex-shrink-0" style={{ backgroundColor: C.pink, color: C.canvas }}>?</span>
                 <span>
                   <span className="block text-base font-bold" style={{ color: C.text }}>Ask the advisor</span>
                   <span className="block text-sm font-semibold" style={{ color: C.text2 }}>Why these stocks? What's in the news?</span>

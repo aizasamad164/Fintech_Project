@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { C, DISPLAY } from '../theme/tokens'
+import { C, HEADING } from '../theme/tokens'
 import LiveBackdrop from '../components/effects/LiveBackdrop'
 
 // TODO (backend): replace onLogin() with Supabase auth via src/lib/supabaseClient.ts
@@ -31,7 +31,7 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
               <span className="w-2 h-2 rounded-full breathe" style={{ backgroundColor: C.pink, boxShadow: `0 0 10px ${C.pink}` }} />
               <span className="text-[11px] font-medium" style={{ color: C.muted }}>Market data online</span>
             </div>
-            <div className="text-4xl leading-none mb-2" style={{ fontFamily: DISPLAY, color: C.text }}>StockSense</div>
+            <div className="text-3xl leading-none mb-2" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>StockSense</div>
             <div className="text-sm" style={{ color: C.muted }}>Build a practice portfolio and learn why each pick is there.</div>
           </div>
 

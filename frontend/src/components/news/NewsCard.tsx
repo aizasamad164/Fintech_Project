@@ -8,7 +8,7 @@ interface Props { ticker: string; limit?: number; compact?: boolean }
 export default function NewsCard({ ticker, limit = 3, compact = false }: Props) {
   const { items, error } = useTickerNews(ticker, limit)
   return (
-    <div className={`glass ${compact ? 'rounded-xl px-3 py-2.5' : 'rounded-3xl p-5'}`}
+    <div className={`glass ${compact ? 'rounded-xl px-3 py-2.5' : 'rounded-2xl p-5'}`}
       style={{ border: `1px solid ${C.border}` }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm font-bold" style={{ color: C.text2 }}>Recent news · {ticker}</span>

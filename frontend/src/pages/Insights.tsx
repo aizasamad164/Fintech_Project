@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { C, DISPLAY, riskColor } from '../theme/tokens'
+import { C, riskColor, HEADING } from '../theme/tokens'
 import { getInsights } from '../services/insightsService'
 import type { InsightRow } from '../data/insights'
 import TagChip from '../components/ui/TagChip'
@@ -47,14 +47,14 @@ export default function Insights({ isPro, onUnlock, onViewPortfolio }: Props) {
       {header}
 
       {/* Winner */}
-      <section className="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-10 fade-up d1"
+      <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 mb-10 fade-up d1"
         style={{ background: `linear-gradient(135deg, ${bestColor}3a 0%, rgba(19,29,48,0.85) 70%)`, border: `2px solid ${bestColor}88`, boxShadow: `0 30px 70px -30px ${bestColor}` }}>
         <div className="text-sm font-bold uppercase mb-2" style={{ color: C.text2, letterSpacing: '0.09em' }}>
           {isPro ? 'Best combination right now' : 'Best combination on your plan'}
         </div>
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-          <span className="text-3xl sm:text-4xl" style={{ fontFamily: DISPLAY, color: C.text }}>{best.sector} · {best.bestRisk}</span>
-          <span className="text-3xl font-bold" style={{ color: best.bestReturn >= 0 ? C.teal : C.pink }}>{pct(best.bestReturn)}</span>
+          <span className="text-2xl sm:text-3xl" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>{best.sector} · {best.bestRisk}</span>
+          <span className="text-2xl font-semibold" style={{ color: best.bestReturn >= 0 ? C.teal : C.pink }}>{pct(best.bestReturn)}</span>
         </div>
         <p className="text-base font-semibold mt-3 max-w-2xl" style={{ color: C.text2 }}>
           Of the combinations on your plan, this one had the highest return over the past 12 months. Past results don't predict what happens next.
@@ -72,13 +72,13 @@ export default function Insights({ isPro, onUnlock, onViewPortfolio }: Props) {
           const color = riskColor(row.bestRisk)
           return (
             <button key={row.sector} onClick={() => (locked ? onUnlock() : onViewPortfolio(row.sector, row.bestRisk))}
-              className={`fill-hover glass w-full text-left rounded-2xl p-5 flex items-center gap-4 fade-up d${Math.min(i + 2, 8)}`}
+              className={`tint-fill glass w-full text-left rounded-2xl p-5 flex items-center gap-4 fade-up d${Math.min(i + 2, 8)}`}
               style={{ ['--fill' as string]: locked ? C.pink : color, border: `2px solid ${C.border}` }}>
-              <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-lg font-bold on-fill-bg"
+              <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-base font-semibold on-fill-bg"
                 style={{ backgroundColor: i === 0 ? C.cyan : C.border, color: i === 0 ? C.canvas : C.text }}>{i + 1}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className="text-lg font-bold" style={{ color: C.text }}>{row.sector}</span>
+                  <span className="text-base font-semibold" style={{ color: C.text }}>{row.sector}</span>
                   <TagChip label={row.bestRisk} color={color} />
                   {row.locked && <span className="inline-flex items-center gap-1 text-xs font-bold" style={{ color: C.pink }}><Lock /> Pro</span>}
                 </div>

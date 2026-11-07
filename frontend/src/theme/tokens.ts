@@ -15,7 +15,9 @@ export const C = {
   teal:    '#3CEDB0', // conservative / gains
 } as const
 
-export const DISPLAY = "'DM Serif Display', Georgia, serif"
+export const DISPLAY = "'DM Serif Display', Georgia, serif"   // dashboard figures only
+/** Headings everywhere else: geometric, slightly technical, used at semibold with tight tracking. */
+export const HEADING = "'Sora', 'Space Grotesk', system-ui, sans-serif"
 
 export const ORBIT_COLORS = [C.cyan, C.pink, C.violet, C.teal, '#FF8FD0', '#7FB8FF'] as const
 

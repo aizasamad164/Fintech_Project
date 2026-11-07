@@ -1,4 +1,4 @@
-import { C, DISPLAY } from '../theme/tokens'
+import { C, HEADING } from '../theme/tokens'
 import { fmt } from '../utils/format'
 import TagChip from '../components/ui/TagChip'
 import SectionLabel from '../components/ui/SectionLabel'
@@ -38,14 +38,14 @@ export default function StockDetail({ stock, color, budget, months, onBack }: Pr
       <BackLink label="Back to portfolio" onClick={onBack} />
 
       {/* Hero, tinted in the strategy colour */}
-      <section className="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-6"
+      <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 mb-6"
         style={{ background: `linear-gradient(135deg, ${color}40 0%, ${color}14 45%, rgba(19,29,48,0.85) 100%)`,
           border: `2px solid ${color}88`, boxShadow: `0 30px 80px -30px ${color}` }}>
         <div className="flex flex-wrap items-center gap-4 mb-5">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-bold"
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-base font-semibold"
             style={{ backgroundColor: color, color: C.canvas, boxShadow: `0 0 30px -4px ${color}` }}>{stock.ticker.slice(0, 4)}</div>
           <div className="min-w-0">
-            <div className="text-4xl font-bold leading-none" style={{ color: C.text }}>{stock.ticker}</div>
+            <div className="text-3xl leading-none" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>{stock.ticker}</div>
             <div className="text-lg font-semibold mt-1" style={{ color: C.text2 }}>{stock.name}</div>
           </div>
           <div className="flex flex-wrap gap-2 sm:ml-auto">
@@ -56,25 +56,25 @@ export default function StockDetail({ stock, color, budget, months, onBack }: Pr
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
             <div className="text-sm font-bold uppercase" style={{ color: C.text2, letterSpacing: '0.08em' }}>Your share</div>
-            <div className="text-5xl font-bold leading-tight" style={{ color: C.text }}>{stock.allocation}%</div>
-            <div className="text-lg font-bold" style={{ color: C.text2 }}>= {fmt(stock.dollars)} of your {fmt(budget)}</div>
+            <div className="text-4xl leading-tight" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>{stock.allocation}%</div>
+            <div className="text-base font-semibold" style={{ color: C.text2 }}>= {fmt(stock.dollars)} of your {fmt(budget)}</div>
           </div>
           <div>
             <div className="text-sm font-bold uppercase" style={{ color: C.text2, letterSpacing: '0.08em' }}>Price today</div>
-            <div className="text-5xl leading-tight" style={{ fontFamily: DISPLAY, color: C.text }}>{fmt(stock.sharePrice)}</div>
-            <div className="text-lg font-bold" style={{ color: up ? C.teal : C.pink }}>{up ? '+' : ''}{stock.yearReturn.toFixed(1)}% over the past year</div>
+            <div className="text-4xl leading-tight" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>{fmt(stock.sharePrice)}</div>
+            <div className="text-base font-semibold" style={{ color: up ? C.teal : C.pink }}>{up ? '+' : ''}{stock.yearReturn.toFixed(1)}% over the past year</div>
           </div>
         </div>
       </section>
 
       <div className="grid lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 space-y-6">
-          <div className="glass rounded-3xl p-5" style={{ border: `1px solid ${C.border}` }}>
+          <div className="glass rounded-2xl p-5" style={{ border: `1px solid ${C.border}` }}>
             <SectionLabel className="mb-3">Your {fmt(stock.dollars)} over the past 12 months</SectionLabel>
             <HistChart historical={historical} />
           </div>
-          <div className="glass rounded-3xl p-5" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${color}` }}>
-            <div className="text-lg font-bold mb-2" style={{ color: C.text }}>Why it's in your portfolio</div>
+          <div className="glass rounded-2xl p-5" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${color}` }}>
+            <div className="text-base font-semibold mb-2" style={{ color: C.text }}>Why it's in your portfolio</div>
             <p className="text-base font-medium leading-relaxed" style={{ color: C.text2 }}>{WHY[stock.riskClass]}</p>
             {stock.mlSignal && (
               <p className="text-sm font-medium leading-relaxed mt-3" style={{ color: C.muted }}>
@@ -90,7 +90,7 @@ export default function StockDetail({ stock, color, budget, months, onBack }: Pr
             {stats.map(([k, v, c]) => (
               <div key={k} className="tint-hover glass rounded-2xl p-4" style={{ ['--fill' as string]: color, border: `1px solid ${C.border}` }}>
                 <div className="text-xs font-bold mb-1" style={{ color: C.muted }}>{k}</div>
-                <div className="text-xl font-bold" style={{ color: c ?? C.text }}>{v}</div>
+                <div className="text-lg font-semibold" style={{ color: c ?? C.text }}>{v}</div>
               </div>
             ))}
           </div>

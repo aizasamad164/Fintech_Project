@@ -27,7 +27,7 @@ export default function LiveBackdrop({ intensity = 'full' }: { intensity?: 'full
           <circle cx="380" cy="40" r="4" fill={C.cyan} />
           <circle cx="380" cy="40" r="8" fill={C.cyan} filter="url(#bd-glow)" opacity="0.7" />
         </g>
-        <g className="orbit-mid" style={{ transformOrigin: '380px 380px' }}>
+        <g className="orbit-mid" style={{ transformOrigin: '380px 380px', opacity: 0.5 }}>
           <circle cx="380" cy="380" r="270" fill="none" stroke={C.violet} strokeOpacity="0.2" />
           <path d="M 380 110 A 270 270 0 0 1 614 245" fill="none" stroke={C.pink} strokeWidth="2" strokeLinecap="round" />
           <path d="M 380 110 A 270 270 0 0 1 614 245" fill="none" stroke={C.pink} strokeWidth="6" strokeLinecap="round" filter="url(#bd-glow)" opacity="0.6" />

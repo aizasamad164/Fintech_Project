@@ -1,4 +1,4 @@
-import { C } from '../../theme/tokens'
+import { C, HEADING } from '../../theme/tokens'
 import LiveBackdrop from '../../components/effects/LiveBackdrop'
 import { BackLink } from '../../components/ui/Buttons'
 
@@ -8,7 +8,7 @@ export default function Paywall({ onUpgrade, onBack }: { onUpgrade: () => void; 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-5 py-12" style={{ backgroundColor: C.canvas }}>
       <LiveBackdrop />
-      <div className="relative w-full max-w-md glass rounded-3xl p-7" style={{ zIndex: 1, border: `1px solid ${C.border}` }}>
+      <div className="relative w-full max-w-md glass rounded-2xl p-7" style={{ zIndex: 1, border: `1px solid ${C.border}` }}>
         <BackLink onClick={onBack} />
         <div className="mb-2 fade-up">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold mb-4"
@@ -16,9 +16,9 @@ export default function Paywall({ onUpgrade, onBack }: { onUpgrade: () => void; 
             <svg width="10" height="10" viewBox="0 0 12 14" fill="none"><rect x="2" y="5" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" /><path d="M4 5V4a2 2 0 014 0v1" stroke="currentColor" strokeWidth="1.5" /></svg>
             StockSense Pro
           </div>
-          <h2 className="text-3xl mb-1" style={{ fontFamily: "'DM Serif Display'", color: C.text }}>Unlock the full picture</h2>
+          <h2 className="text-3xl mb-1" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.02em', color: C.text }}>Unlock the full picture</h2>
           <div className="flex items-baseline gap-1 mt-3 mb-5">
-            <span className="text-4xl font-bold" style={{ fontFamily: "'DM Serif Display'", color: C.text }}>$9</span>
+            <span className="text-4xl font-bold" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.02em', color: C.text }}>$9</span>
             <span className="text-base" style={{ color: C.muted }}>/month · cancel anytime</span>
           </div>
         </div>

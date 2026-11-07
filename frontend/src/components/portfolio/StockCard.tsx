@@ -1,4 +1,4 @@
-import { C, riskColor } from '../../theme/tokens'
+import { C, HEADING, riskColor } from '../../theme/tokens'
 import { fmt } from '../../utils/format'
 import TrendSpark from '../charts/TrendSpark'
 import type { PortfolioStock } from '../../types/portfolio'
@@ -27,7 +27,7 @@ export default function StockCard({ stock, budget, index, onOpen }: Props) {
   const outlook = stock.mlSignal ? OUTLOOK[stock.mlSignal] : null
   return (
     <button type="button" onClick={e => onOpen(e.currentTarget)} aria-label={`${stock.ticker}: ${stock.allocation}% of your money. Open details`}
-      className={`fill-hover glass group w-full text-left rounded-2xl p-5 flex flex-col fade-up d${Math.min(index + 2, 8)}`}
+      className={`tint-fill glass group w-full text-left rounded-2xl p-5 flex flex-col fade-up d${Math.min(index + 2, 8)}`}
       style={{ ['--fill' as string]: color, border: `2px solid ${C.border}` }}>
 
       {/* Name */}
@@ -35,7 +35,7 @@ export default function StockCard({ stock, budget, index, onOpen }: Props) {
         <div className="on-fill-bg w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center text-sm font-bold"
           style={{ backgroundColor: `${color}22`, color, border: `1px solid ${color}55` }}>{stock.ticker.slice(0, 2)}</div>
         <div className="min-w-0">
-          <div className="text-lg font-bold leading-tight" style={{ color: C.text }}>{stock.ticker}</div>
+          <div className="text-base font-semibold leading-tight" style={{ color: C.text }}>{stock.ticker}</div>
           <div className="text-sm font-semibold truncate" style={{ color: C.muted }}>{stock.name}</div>
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function StockCard({ stock, budget, index, onOpen }: Props) {
         style={{ color, backgroundColor: `${color}1f`, border: `1px solid ${color}55` }}>{stock.riskClass} pick</span>
 
       {/* The money */}
-      <div className="text-4xl font-bold leading-none" style={{ color: C.text }}>{stock.allocation}%</div>
+      <div className="text-3xl leading-none" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>{stock.allocation}%</div>
       <div className="text-sm font-bold mt-1" style={{ color: C.text2 }}>of your money goes here</div>
       <div className="text-base font-bold mt-2" style={{ color }}>
         = {fmt(stock.dollars)} <span className="font-semibold" style={{ color: C.muted }}>of your {fmt(budget)}</span>
@@ -56,7 +56,7 @@ export default function StockCard({ stock, budget, index, onOpen }: Props) {
       <div className="flex items-end justify-between gap-3 mt-4">
         <div>
           <div className="text-xs font-bold" style={{ color: C.muted }}>Past 12 months</div>
-          <div className="text-lg font-bold" style={{ color: up ? C.teal : C.pink }}>{up ? '+' : ''}{stock.yearReturn.toFixed(1)}%</div>
+          <div className="text-base font-semibold" style={{ color: up ? C.teal : C.pink }}>{up ? '+' : ''}{stock.yearReturn.toFixed(1)}%</div>
         </div>
         <span className="spark"><TrendSpark trend={stock.trend} up={up} W={84} H={30} /></span>
       </div>

@@ -102,11 +102,11 @@ export default function Advisor({ dashboard, savedPortfolioId, onSavedPortfolioC
       {/* Conversation */}
       <div className="flex-1 space-y-4 mb-6" aria-live="polite">
         {messages.length === 0 && (
-          <div className="glass rounded-3xl p-6 fade-up" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.pink}` }}>
-            <div className="text-lg font-bold mb-3" style={{ color: C.text }}>Try asking</div>
+          <div className="glass rounded-2xl p-6 fade-up" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.pink}` }}>
+            <div className="text-base font-semibold mb-3" style={{ color: C.text }}>Try asking</div>
             <div className="grid gap-3 sm:grid-cols-3">
               {suggestions.map((s, i) => (
-                <button key={s} onClick={() => send(s)} className="fill-hover glass text-left text-base font-bold px-4 py-4 rounded-2xl"
+                <button key={s} onClick={() => send(s)} className="tint-fill glass text-left text-base font-bold px-4 py-3.5 rounded-xl"
                   style={{ ['--fill' as string]: [C.pink, C.cyan, C.teal][i % 3], color: C.text, border: `2px solid ${C.border}` }}>{s}</button>
               ))}
             </div>
@@ -114,7 +114,7 @@ export default function Advisor({ dashboard, savedPortfolioId, onSavedPortfolioC
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} fade-up`}>
-            <div className={`max-w-[88%] rounded-3xl px-5 py-4 text-base font-medium leading-relaxed ${m.role === 'assistant' ? 'glass' : ''}`}
+            <div className={`max-w-[88%] rounded-2xl px-5 py-4 text-base font-medium leading-relaxed ${m.role === 'assistant' ? 'glass' : ''}`}
               style={m.role === 'user'
                 ? { backgroundColor: C.cyan, color: C.canvas, fontWeight: 700 }
                 : { color: C.text2, border: `1px solid ${C.border}` }}>
@@ -142,11 +142,11 @@ export default function Advisor({ dashboard, savedPortfolioId, onSavedPortfolioC
 
       {/* Composer */}
       <form onSubmit={e => { e.preventDefault(); send(input) }}
-        className="glass sticky bottom-4 flex gap-2 rounded-3xl p-2"
+        className="glass sticky bottom-4 flex gap-2 rounded-2xl p-2"
         style={{ border: `2px solid ${C.border}`, boxShadow: '0 16px 40px -14px rgba(0,0,0,0.7)' }}>
         <input value={input} onChange={e => setInput(e.target.value)} placeholder="Ask the advisor…" aria-label="Message"
           maxLength={2000} className="flex-1 bg-transparent px-4 py-3 text-base font-semibold outline-none" style={{ color: C.text }} />
-        <button type="submit" disabled={busy || !input.trim()} className="cta px-6 py-3 rounded-2xl text-base font-bold disabled:opacity-40"
+        <button type="submit" disabled={busy || !input.trim()} className="cta px-6 py-3 rounded-xl text-[0.95rem] font-semibold disabled:opacity-40"
           style={{ backgroundColor: C.pink, color: C.canvas, ['--glow' as string]: C.pink }}>Send</button>
       </form>
     </div>

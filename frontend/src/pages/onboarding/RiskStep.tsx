@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { C, DISPLAY } from '../../theme/tokens'
+import { C, HEADING } from '../../theme/tokens'
 import { RISK_OPTS } from '../../data/options'
 import OnboardShell from '../../components/layout/OnboardShell'
 import StepBar from '../../components/layout/StepBar'
@@ -15,44 +15,43 @@ export default function RiskStep({ onNext, onBack }: { onNext: (r: Risk) => void
     <OnboardShell>
       <StepBar step={2} />
       <div className="text-center mb-8">
-        <h1 className="leading-tight mb-3 fade-up" style={{ fontFamily: DISPLAY, color: C.text, fontSize: 'clamp(2.2rem, 5.5vw, 3.2rem)' }}>
+        <h1 className="text-3xl sm:text-4xl font-semibold mb-3 fade-up" style={{ fontFamily: HEADING, color: C.text, letterSpacing: '-0.025em' }}>
           How do you want to approach risk?
         </h1>
-        <p className="text-lg font-semibold fade-up d1" style={{ color: C.text2 }}>This decides which companies we include and how much money each one gets.</p>
+        <p className="text-base font-medium fade-up d1" style={{ color: C.muted }}>This decides which companies we include and how much money each one gets.</p>
       </div>
 
-      <div className="flex flex-col gap-4" role="radiogroup" aria-label="Risk strategy">
+      <div className="flex flex-col gap-3" role="radiogroup" aria-label="Risk strategy">
         {RISK_OPTS.map((opt, i) => {
           const on = sel === opt.v
           return (
             <button key={opt.v} role="radio" aria-checked={on} onClick={() => setSel(opt.v)} data-active={on}
-              className={`fill-hover glass w-full text-left rounded-2xl px-6 py-5 sm:py-6 flex items-center gap-5 fade-up d${i + 2}`}
-              style={{ ['--fill' as string]: opt.color, border: `2px solid ${C.border}` }}>
-              {/* risk meter: 1-3 bars */}
+              className={`tint-fill glass w-full text-left rounded-xl px-5 sm:px-6 py-5 flex items-center gap-5 fade-up d${i + 2}`}
+              style={{ ['--fill' as string]: opt.color, border: `1px solid ${C.border}` }}>
               <div className="flex items-end gap-1 flex-shrink-0" aria-hidden>
                 {[1, 2, 3].map(b => (
-                  <span key={b} className={`w-2.5 rounded-sm ${b <= METER[opt.v] ? 'on-fill-bar' : 'on-fill-track'}`} style={{ height: 10 + b * 9, backgroundColor: b <= METER[opt.v] ? opt.color : C.border }} />
+                  <span key={b} className="w-1.5 rounded-sm" style={{ height: 8 + b * 7, backgroundColor: b <= METER[opt.v] ? opt.color : C.border }} />
                 ))}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-2xl font-bold mb-1" style={{ color: opt.color }}>{opt.v}</div>
-                <p className="text-base font-medium leading-relaxed" style={{ color: C.text2 }}>{opt.desc}</p>
+                <div className="text-lg font-semibold mb-0.5" style={{ fontFamily: HEADING, color: C.text, letterSpacing: '-0.01em' }}>{opt.v}</div>
+                <p className="text-sm font-medium leading-relaxed" style={{ color: C.text2 }}>{opt.desc}</p>
               </div>
-              <div className="hidden sm:block text-right flex-shrink-0">
-                <div className="text-xs font-bold uppercase" style={{ color: C.muted, letterSpacing: '0.08em' }}>Typical range</div>
-                <div className="text-lg font-bold" style={{ color: opt.color }}>{opt.range.replace(' est. return', '')}</div>
+              <div className="hidden sm:block text-right flex-shrink-0 w-28">
+                <div className="text-[10px] font-semibold uppercase" style={{ color: C.muted, letterSpacing: '0.12em' }}>Typical range</div>
+                <div className="text-base font-semibold" style={{ color: opt.color }}>{opt.range.replace(' est. return', '')}</div>
               </div>
-              <span className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold"
-                style={{ border: `2px solid ${on ? C.canvas : C.border}`, color: C.canvas }}>{on ? '✓' : ''}</span>
+              <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold"
+                style={{ border: `1.5px solid ${on ? opt.color : C.border}`, backgroundColor: on ? opt.color : 'transparent', color: C.canvas }}>{on ? '✓' : ''}</span>
             </button>
           )
         })}
       </div>
 
-      <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-3 mt-10 fade-up d6">
-        <GhostBtn onClick={onBack}>← Back</GhostBtn>
+      <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-3 mt-9 fade-up d6">
+        <GhostBtn onClick={onBack}>Back</GhostBtn>
         <BigCta onClick={() => sel && onNext(sel)} disabled={!sel} color={selColor}>
-          {sel ? `Continue with ${sel} →` : 'Choose a strategy'}
+          {sel ? `Continue with ${sel}` : 'Choose a strategy'}
         </BigCta>
       </div>
     </OnboardShell>
