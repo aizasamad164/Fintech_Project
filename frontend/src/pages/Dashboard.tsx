@@ -1,11 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState, type AnimationEvent } from 'react'
-import { C, DISPLAY, ORBIT_COLORS, riskColor } from '../theme/tokens'
+import { C, DISPLAY, riskColor } from '../theme/tokens'
 import { fmt } from '../utils/format'
 import { useGeneratedPortfolio } from '../hooks/useGeneratedPortfolio'
 import TagChip from '../components/ui/TagChip'
 import SectionLabel from '../components/ui/SectionLabel'
 import AdjustPanel from '../components/portfolio/AdjustPanel'
-import HoldingItem from '../components/portfolio/HoldingItem'
+import StockCard from '../components/portfolio/StockCard'
 import OrbitRings from '../components/charts/OrbitRings'
 import AllocationLegend from '../components/charts/AllocationLegend'
 import RiskGauge from '../components/charts/RiskGauge'
@@ -21,13 +21,15 @@ interface Props {
   onPortfolio?: (p: Portfolio | null) => void   // lets the Advisor tab see what's on screen
   onOpenTracking?: () => void
   onAskAdvisor?: () => void
+  isPro?: boolean
+  onLocked?: () => void            // opens the Pro paywall
 }
 
 type Detail = { ticker: string; origin: string; phase: 'open' | 'closing'; returnScroll: number }
 
-const tile = { backgroundColor: C.surface, border: `1px solid ${C.border}` }
+const tile = { border: `1px solid ${C.border}` }
 
-export default function Dashboard({ budget, risk, sector, variant, onVariant, onRisk, onSector, onBudget, onPortfolio, onOpenTracking, onAskAdvisor }: Props) {
+export default function Dashboard({ budget, risk, sector, variant, onVariant, onRisk, onSector, onBudget, onPortfolio, onOpenTracking, onAskAdvisor, isPro = false, onLocked = () => {} }: Props) {
   const { portfolio, loading, error } = useGeneratedPortfolio(budget, risk, sector)
   const [animKey, setAnimKey] = useState(0)
   const [adjustOpen, setAdjustOpen] = useState(false)
@@ -85,41 +87,54 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
       return (
         <div ref={rootRef} className={detail.phase === 'open' ? 'zoom-in' : 'zoom-out'}
           style={{ transformOrigin: detail.origin }} onAnimationEnd={finishClose}>
-          <StockDetail stock={portfolio.stocks[i]} color={ORBIT_COLORS[i % ORBIT_COLORS.length]} onBack={closeDetail} />
+          <StockDetail stock={portfolio.stocks[i]} color={riskColor(portfolio.stocks[i].riskClass)} budget={budget} months={portfolio.historical.map(h => h.month)} onBack={closeDetail} />
         </div>
       )
     }
   }
 
-  const header = (
+  // ── Action buttons (always visible, big) ──────────────────────────────
+  const actions = (
+    <div className="flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-64 flex-shrink-0">
+      <button onClick={() => setAdjustOpen(o => !o)} aria-expanded={adjustOpen}
+        className="cta flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-base font-bold"
+        style={{ backgroundColor: adjustOpen ? C.canvas : C.pink, color: adjustOpen ? C.pink : C.canvas,
+          border: `2px solid ${C.pink}`, ['--glow' as string]: C.pink }}>
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden><path d="M3 6h9M15 6h2M3 14h2M8 14h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><circle cx="13.5" cy="6" r="2" stroke="currentColor" strokeWidth="2" /><circle cx="6.5" cy="14" r="2" stroke="currentColor" strokeWidth="2" /></svg>
+        {adjustOpen ? 'Close adjust' : 'Adjust portfolio'}
+      </button>
+      {portfolio && (save.state === 'saved'
+        ? <button onClick={onOpenTracking} className="cta flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-base font-bold"
+            style={{ backgroundColor: C.teal, color: C.canvas, ['--glow' as string]: C.teal }}>
+            ✓ Saved · open Tracking
+          </button>
+        : <button onClick={doSave} disabled={save.state === 'saving'}
+            className="cta flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-base font-bold disabled:opacity-60"
+            style={{ backgroundColor: C.cyan, color: C.canvas }}>
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden><path d="M5 3h8l3 3v11H5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M8 3v4h4V3M8 17v-5h5v5" stroke="currentColor" strokeWidth="2" /></svg>
+            {save.state === 'saving' ? 'Saving…' : 'Save & track'}
+          </button>)}
+    </div>
+  )
+
+  const chips = (
+    <div className="flex flex-wrap items-center gap-2">
+      <TagChip label={fmt(budget)} color={C.violet} />
+      <TagChip label={risk} color={riskColor(risk)} />
+      <TagChip label={sector} color={C.cyan} />
+      {variant === 'stale' && <TagChip label="Saved data" color={C.pink} />}
+      {portfolio?.asOf && <span className="text-xs font-semibold ml-1" style={{ color: C.muted }}>Prices as of {portfolio.asOf}</span>}
+    </div>
+  )
+
+  const extras = (
     <>
-      <div className="flex flex-wrap items-center gap-2 mb-2 fade-in">
-        <TagChip label={fmt(budget)} color={C.violet} />
-        <TagChip label={risk} color={riskColor(risk)} />
-        <TagChip label={sector} color={C.cyan} />
-        {variant === 'stale' && <TagChip label="Saved data" color={C.pink} />}
-        <button onClick={() => setAdjustOpen(o => !o)} className="pressable inline-flex items-center px-2.5 py-1 text-xs rounded-full font-medium"
-          style={{ backgroundColor: adjustOpen ? `${C.pink}25` : `${C.pink}12`, color: C.pink, border: `1px solid ${C.pink}40` }}>
-          {adjustOpen ? 'Close adjust' : 'Adjust'}
-        </button>
-        {portfolio && (save.state === 'saved'
-          ? <button onClick={onOpenTracking} className="pressable inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-full font-medium"
-              style={{ backgroundColor: `${C.teal}18`, color: C.teal, border: `1px solid ${C.teal}45` }}>
-              ✓ Saved · track it
-            </button>
-          : <button onClick={doSave} disabled={save.state === 'saving'} className="pressable inline-flex items-center px-2.5 py-1 text-xs rounded-full font-medium disabled:opacity-60"
-              style={{ backgroundColor: `${C.cyan}12`, color: C.cyan, border: `1px solid ${C.cyan}40` }}>
-              {save.state === 'saving' ? 'Saving…' : 'Save & track'}
-            </button>)}
-        {portfolio?.asOf && <span className="text-[11px] ml-1" style={{ color: C.muted }}>Prices as of {portfolio.asOf}</span>}
-      </div>
-      {save.state === 'error' && (
-        <div className="mt-2 text-xs" style={{ color: C.pink }}>Couldn't save: {save.msg}</div>
-      )}
-      {adjustOpen && <AdjustPanel risk={risk} sector={sector} budget={budget} onRisk={onRisk} onSector={onSector} onBudget={onBudget} onClose={() => setAdjustOpen(false)} />}
+      {save.state === 'error' && <div className="mt-3 text-sm font-bold" style={{ color: C.pink }} role="alert">Couldn't save: {save.msg}</div>}
+      {adjustOpen && <AdjustPanel risk={risk} sector={sector} budget={budget} isPro={isPro} onLocked={onLocked}
+        onRisk={onRisk} onSector={onSector} onBudget={onBudget} onClose={() => setAdjustOpen(false)} />}
       {variant === 'stale' && (
-        <div className="mt-3 px-4 py-2 rounded-lg text-xs fade-in" style={{ backgroundColor: `${C.pink}12`, border: `1px solid ${C.pink}30`, color: C.muted }}>
-          Last updated Aug 30, 2026 — showing saved data. Live prices may differ.
+        <div className="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold fade-in" style={{ backgroundColor: `${C.pink}18`, border: `1px solid ${C.pink}55`, color: C.text2 }}>
+          Last updated Aug 30, 2026: showing saved data. Live prices may differ.
         </div>
       )}
     </>
@@ -127,13 +142,22 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
 
   if (error || !portfolio) {
     return (
-      <div ref={rootRef} className="px-5 sm:px-8 py-6 max-w-6xl mx-auto">
-        {header}
-        {error
-          ? <div className="mt-8 p-4 rounded-lg text-sm" style={{ backgroundColor: `${C.pink}12`, border: `1px solid ${C.pink}30`, color: C.text2 }}>
-              Couldn't build this portfolio: {error}. Check that the backend is running, then change any setting to try again.
-            </div>
-          : <p className="mt-8 text-sm" style={{ color: C.muted }}>Building your portfolio…</p>}
+      <div ref={rootRef} className="px-4 sm:px-8 py-6 max-w-7xl mx-auto">
+        <section className="glass rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center" style={tile}>
+          <div className="flex-1">
+            {chips}
+            {error
+              ? <p className="mt-5 text-base font-semibold" style={{ color: C.text2 }} role="alert">
+                  Couldn't build this portfolio: {error}. Check that the backend is running, then change any setting to try again.
+                </p>
+              : <div className="mt-5 space-y-3" aria-label="Building your portfolio">
+                  <div className="h-4 w-48 rounded animate-pulse" style={{ backgroundColor: C.border }} />
+                  <div className="h-16 w-72 rounded-xl animate-pulse" style={{ backgroundColor: C.border }} />
+                </div>}
+          </div>
+          {actions}
+        </section>
+        {extras}
       </div>
     )
   }
@@ -144,109 +168,130 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
   const riskTone = portfolio.riskRating >= 4 ? C.pink : portfolio.riskRating >= 3 ? C.cyan : C.teal
 
   return (
-    <div ref={rootRef} className="px-5 sm:px-8 py-6 max-w-6xl mx-auto">
-      {header}
+    <div ref={rootRef} className="px-4 sm:px-8 py-6 max-w-7xl mx-auto">
+      <div key={animKey} style={{ opacity: loading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
 
-      <div key={animKey} className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6" style={{ opacity: loading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
-
-        {/* ── Hero: bare, oversized — the headline number owns the page ── */}
-        <section className="lg:col-span-7 flex flex-col justify-center py-2 fade-up">
-          <SectionLabel className="mb-2">Projected value · 1 year</SectionLabel>
-          <div className="leading-none mb-3" style={{ fontFamily: DISPLAY, color: C.text, fontSize: 'clamp(3rem, 7vw, 5.25rem)' }}>{fmt(portfolio.projectedValue)}</div>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span className="text-2xl font-semibold" style={{ color: up ? C.teal : C.pink }}>{up ? '+' : ''}{portfolio.weightedReturn.toFixed(1)}%</span>
-            <span className="text-sm" style={{ color: C.muted }}>from {fmt(budget)} · weighted average of the past 12 months</span>
-          </div>
-          <div className="mt-6 flex flex-wrap gap-6 text-sm">
-            <div><div className="text-[11px]" style={{ color: C.muted }}>Holdings</div><div className="font-semibold" style={{ color: C.text }}>{portfolio.stocks.length}</div></div>
-            <div><div className="text-[11px]" style={{ color: C.muted }}>Largest position</div><div className="font-semibold" style={{ color: C.text }}>{top.ticker} · {top.allocation}%</div></div>
-            <div><div className="text-[11px]" style={{ color: C.muted }}>Strategy</div><div className="font-semibold" style={{ color: riskColor(risk) }}>{risk}</div></div>
-          </div>
-        </section>
-
-        {/* ── Risk tile: compact instrument with a tone-matched glow ── */}
-        <section className="lg:col-span-5 rounded-2xl p-5 flex flex-col items-center justify-center fade-up d2 relative overflow-hidden" style={tile}>
-          <div className="absolute inset-x-0 -bottom-16 h-32 pointer-events-none" style={{ background: `radial-gradient(ellipse at center, ${riskTone}26, transparent 70%)` }} aria-hidden />
-          <SectionLabel className="self-start mb-2">Risk rating</SectionLabel>
-          <RiskGauge rating={portfolio.riskRating} animate={true} />
-          <div className="text-sm mt-1" style={{ color: C.text2 }}><span style={{ color: riskTone, fontWeight: 600 }}>{riskWord} risk</span> · {portfolio.riskRating}/5</div>
-        </section>
-
-        {/* ── Allocation instrument: rings + legend, no text on the rings ── */}
-        <section className="lg:col-span-5 rounded-2xl p-5 scale-up d3" style={tile}>
-          <SectionLabel className="mb-4">Allocation instrument</SectionLabel>
-          <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center gap-6">
-            <div className="w-full max-w-[200px] flex-shrink-0"><OrbitRings stocks={portfolio.stocks} animate={true} /></div>
-            <AllocationLegend stocks={portfolio.stocks} />
-          </div>
-        </section>
-
-        {/* ── Performance ── */}
-        <section className="lg:col-span-7 rounded-2xl p-5 fade-up d4" style={tile}>
-          <div className="flex items-baseline justify-between mb-4 gap-4 flex-wrap">
-            <SectionLabel>12-month performance (illustrative)</SectionLabel>
-            <div className="text-sm" style={{ color: C.muted }}>
-              <span style={{ color: C.text2 }}>{fmt(budget)}</span>{' → '}
-              <span style={{ color: up ? C.teal : C.pink, fontWeight: 600 }}>{fmt(portfolio.projectedValue)}</span>
+        {/* ── 1. Hero: projected value + the two main buttons ─────────── */}
+        <section className="glass relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center fade-up"
+          style={{ border: `1px solid ${C.border}`, boxShadow: `0 30px 80px -40px ${riskColor(risk)}` }}>
+          <div className="absolute -top-24 -right-16 w-80 h-80 rounded-full pointer-events-none" aria-hidden
+            style={{ background: `radial-gradient(circle, ${riskColor(risk)}2e 0%, transparent 70%)` }} />
+          <div className="relative flex-1 min-w-0">
+            {chips}
+            <div className="text-sm font-bold uppercase mt-5 mb-2" style={{ color: C.muted, letterSpacing: '0.09em' }}>
+              If this mix repeats last year, in 1 year you'd have
+            </div>
+            <div className="leading-none mb-3" style={{ fontFamily: DISPLAY, color: C.text, fontSize: 'clamp(3.2rem, 8vw, 5.5rem)' }}>{fmt(portfolio.projectedValue)}</div>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="text-2xl font-bold px-3 py-1 rounded-xl" style={{ color: C.canvas, backgroundColor: up ? C.teal : C.pink }}>
+                {up ? '+' : ''}{portfolio.weightedReturn.toFixed(1)}%
+              </span>
+              <span className="text-base font-semibold" style={{ color: C.text2 }}>
+                from your {fmt(budget)} · {portfolio.stocks.length} stocks · largest: {top.ticker} ({top.allocation}%)
+              </span>
             </div>
           </div>
-          <HistChart historical={portfolio.historical} />
+          <div className="relative">{actions}</div>
         </section>
+        {extras}
 
-        {/* ── Holdings: the working area, widest column ── */}
-        <section className="lg:col-span-8">
-          <SectionLabel className="mb-3">Holdings ({portfolio.stocks.length}) · tap one for details</SectionLabel>
-          <div className="space-y-3">
-            {portfolio.stocks.map((s, i) => (
-              <HoldingItem key={s.ticker} stock={s} color={ORBIT_COLORS[i % ORBIT_COLORS.length]} index={i} onOpen={el => openDetail(s.ticker, el)} />
+        {/* ── 2. The three instruments, side by side ──────────────────── */}
+        <div className="grid gap-5 mt-6 md:grid-cols-2 xl:grid-cols-3">
+          <section className="glass rounded-3xl p-5 scale-up d2" style={tile}>
+            <SectionLabel className="mb-1">Where your money goes</SectionLabel>
+            <p className="text-sm font-semibold mb-4" style={{ color: C.muted }}>Share of your {fmt(budget)} in each stock</p>
+            <div className="flex flex-col sm:flex-row md:flex-col items-center gap-5">
+              <div className="w-full max-w-[190px] flex-shrink-0"><OrbitRings stocks={portfolio.stocks} animate={true} /></div>
+              <AllocationLegend stocks={portfolio.stocks} />
+            </div>
+          </section>
+
+          <section className="glass rounded-3xl p-5 flex flex-col fade-up d3 relative overflow-hidden" style={tile}>
+            <div className="absolute inset-x-0 -bottom-16 h-40 pointer-events-none" style={{ background: `radial-gradient(ellipse at center, ${riskTone}33, transparent 70%)` }} aria-hidden />
+            <SectionLabel className="mb-1">Risk rating</SectionLabel>
+            <p className="text-sm font-semibold mb-2" style={{ color: C.muted }}>How much this mix tends to swing</p>
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <RiskGauge rating={portfolio.riskRating} animate={true} />
+              <div className="text-2xl font-bold mt-1" style={{ color: riskTone }}>{riskWord} risk</div>
+              <div className="text-sm font-bold" style={{ color: C.text2 }}>{portfolio.riskRating} out of 5</div>
+            </div>
+          </section>
+
+          <section className="glass rounded-3xl p-5 flex flex-col fade-up d4 md:col-span-2 xl:col-span-1" style={tile}>
+            <SectionLabel className="mb-1">Past 12 months</SectionLabel>
+            <p className="text-sm font-semibold mb-3" style={{ color: C.muted }}>
+              <span style={{ color: C.text2 }}>{fmt(budget)}</span> would have become{' '}
+              <span style={{ color: up ? C.teal : C.pink, fontWeight: 700 }}>{fmt(portfolio.projectedValue)}</span>
+            </p>
+            <div className="flex-1 flex items-center"><HistChart historical={portfolio.historical} compact /></div>
+          </section>
+        </div>
+
+        {/* ── 3. The stocks, side by side ─────────────────────────────── */}
+        <div className="mt-10 mb-4 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-3xl" style={{ fontFamily: DISPLAY, color: C.text }}>Your {portfolio.stocks.length} stocks</h2>
+            <p className="text-base font-semibold" style={{ color: C.text2 }}>Each card shows how much of your {fmt(budget)} goes into that company. Tap one to learn more.</p>
+          </div>
+          <div className="flex items-center gap-3 text-xs font-bold" style={{ color: C.muted }}>
+            {(['Conservative', 'Balanced', 'Aggressive'] as Risk[]).map(r => (
+              <span key={r} className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: riskColor(r) }} />{r}</span>
             ))}
           </div>
-        </section>
+        </div>
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+          {portfolio.stocks.map((s, i) => (
+            <StockCard key={s.ticker} stock={s} budget={budget} index={i} onOpen={el => openDetail(s.ticker, el)} />
+          ))}
+        </div>
 
-        {/* ── Plain-English read: pinned alongside holdings on desktop ── */}
-        <aside className="lg:col-span-4">
-          <div className="lg:sticky lg:top-6 space-y-4 fade-up d6">
-            <div className="rounded-2xl p-5" style={{ backgroundColor: C.card, borderLeft: `3px solid ${C.violet}` }}>
-              <div className="flex items-center justify-between mb-3 gap-2">
-                <div className="text-sm font-semibold" style={{ color: C.text }}>Plain-English read</div>
-                {portfolio.explanationSource === 'llm' && <TagChip label="AI-written" color={C.violet} />}
-              </div>
-              {variant === 'no-explanation' || portfolio.explanation.length === 0 ? (
-                <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
-                  We couldn't generate a custom explanation for this combination. The standard read: a <span style={{ color: C.text2 }}>{risk.toLowerCase()}</span> allocation in <span style={{ color: C.text2 }}>{sector}</span> across {portfolio.stocks.length} holdings, weighted toward {top.name} at {top.allocation}%, which returned about <span style={{ color: up ? C.teal : C.pink }}>{portfolio.weightedReturn.toFixed(1)}%</span> over the past 12 months.
-                </p>
-              ) : (
-                <ol className="space-y-3">
-                  {portfolio.explanation.map((b, i) => (
-                    <li key={i} className="flex gap-3">
-                      <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold mt-0.5" style={{ backgroundColor: i === 0 ? C.pink : C.cyan, color: C.canvas }}>{i + 1}</span>
-                      <p className="text-sm leading-relaxed" style={{ color: C.text2 }}>{b}</p>
-                    </li>
-                  ))}
-                </ol>
-              )}
+        {/* ── 4. Plain-English read + advisor ─────────────────────────── */}
+        <div className="grid gap-5 mt-10 lg:grid-cols-3">
+          <section className="glass lg:col-span-2 rounded-3xl p-6 fade-up d6" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.violet}` }}>
+            <div className="flex items-center justify-between mb-4 gap-2">
+              <h3 className="text-xl font-bold" style={{ color: C.text }}>In plain English</h3>
+              {portfolio.explanationSource === 'llm' && <TagChip label="AI-written" color={C.violet} />}
             </div>
+            {variant === 'no-explanation' || portfolio.explanation.length === 0 ? (
+              <p className="text-base font-medium leading-relaxed" style={{ color: C.text2 }}>
+                We couldn't generate a custom explanation for this combination. The standard read: a {risk.toLowerCase()} mix in {sector} across {portfolio.stocks.length} stocks,
+                with the most money in {top.name} ({top.allocation}%). Over the past 12 months it would have returned about{' '}
+                <b style={{ color: up ? C.teal : C.pink }}>{portfolio.weightedReturn.toFixed(1)}%</b>.
+              </p>
+            ) : (
+              <ol className="space-y-4">
+                {portfolio.explanation.map((b, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold" style={{ backgroundColor: [C.pink, C.cyan, C.teal][i % 3], color: C.canvas }}>{i + 1}</span>
+                    <p className="text-base font-medium leading-relaxed" style={{ color: C.text2 }}>{b}</p>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+
+          <div className="flex flex-col gap-4">
             {onAskAdvisor && (
-              <button onClick={onAskAdvisor} className="pressable w-full text-left rounded-2xl p-4 flex items-center gap-3"
-                style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
-                <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0" style={{ backgroundColor: `${C.pink}22`, color: C.pink }}>?</span>
+              <button onClick={onAskAdvisor} className="tint-hover glass w-full text-left rounded-3xl p-5 flex items-center gap-4"
+                style={{ ['--fill' as string]: C.pink, border: `2px solid ${C.pink}55` }}>
+                <span className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold flex-shrink-0" style={{ backgroundColor: C.pink, color: C.canvas }}>?</span>
                 <span>
-                  <span className="block text-sm font-semibold" style={{ color: C.text }}>Ask the advisor about this portfolio</span>
-                  <span className="block text-xs" style={{ color: C.muted }}>Why these stocks? What's in the news?</span>
+                  <span className="block text-base font-bold" style={{ color: C.text }}>Ask the advisor</span>
+                  <span className="block text-sm font-semibold" style={{ color: C.text2 }}>Why these stocks? What's in the news?</span>
                 </span>
               </button>
             )}
-            <p className="text-xs leading-relaxed px-1" style={{ color: C.muted }}>
-              <strong style={{ color: C.text2, fontWeight: 600 }}>For educational purposes only.</strong>{' '}This tool does not execute trades, hold funds, or provide licensed financial advice. Historical returns do not guarantee future results.
+            <p className="text-sm font-medium leading-relaxed px-1" style={{ color: C.muted }}>
+              <strong style={{ color: C.text2 }}>For educational purposes only.</strong> This tool does not execute trades, hold funds, or give licensed financial advice. Past returns don't guarantee future results.
             </p>
           </div>
-        </aside>
+        </div>
 
-        {/* Demo-only state switcher — remove before release */}
-        <div className="lg:col-span-12 pt-4 flex items-center gap-2 flex-wrap" style={{ borderTop: `1px solid ${C.border}` }}>
-          <span className="text-[10px] uppercase tracking-widest" style={{ color: C.muted, opacity: 0.6 }}>View state:</span>
+        {/* Demo-only state switcher, remove before release */}
+        <div className="mt-10 pt-4 flex items-center gap-2 flex-wrap" style={{ borderTop: `1px solid ${C.border}` }}>
+          <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: C.muted, opacity: 0.6 }}>View state:</span>
           {(['success', 'no-explanation', 'stale'] as DashVariant[]).map(v => (
-            <button key={v} onClick={() => onVariant(v)} className="text-[10px] px-2 py-1 rounded transition-all"
+            <button key={v} onClick={() => onVariant(v)} className="text-[10px] font-bold px-2 py-1 rounded transition-all"
               style={{ border: `1px solid ${variant === v ? C.violet : C.border}`, color: variant === v ? C.violet : C.muted, backgroundColor: variant === v ? `${C.violet}12` : 'transparent' }}>
               {v === 'success' ? 'Success' : v === 'no-explanation' ? 'No explanation' : 'Stale data'}
             </button>

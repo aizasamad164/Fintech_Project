@@ -1,38 +1,38 @@
-import { C } from '../../theme/tokens'
+import { C, DISPLAY } from '../../theme/tokens'
 import { LESSONS, LESSON_CONTENT } from '../../data/lessons'
 import LessonHeroGraph from '../../components/charts/LessonHeroGraph'
-import SectionLabel from '../../components/ui/SectionLabel'
 import { BackLink } from '../../components/ui/Buttons'
+
+const ACCENTS = [C.cyan, C.teal, C.violet, C.pink, '#B8F36B', '#7FB8FF']
 
 export default function LessonDetail({ id, onBack, onNext }: { id: number; onBack: () => void; onNext: () => void }) {
   const lesson = LESSONS[id]
   const content = LESSON_CONTENT[id]
   const nextLesson = LESSONS[(id + 1) % LESSONS.length]
+  const accent = ACCENTS[id % ACCENTS.length]
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-2xl mx-auto">
+    <div className="px-4 sm:px-8 py-8 max-w-3xl mx-auto">
       <BackLink label="Back to lessons" onClick={onBack} />
-      <SectionLabel className="mb-2 fade-up">Learn how to —</SectionLabel>
-      <h1 className="text-3xl mb-2 fade-up d1" style={{ fontFamily: "'DM Serif Display'", color: C.text }}>{lesson.title}</h1>
-      <p className="text-sm mb-8 fade-up d2" style={{ color: C.muted }}>{lesson.subtitle}</p>
-      <div className="mb-8 p-4 rounded-xl fade-up d3" style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}>
+      <div className="text-sm font-bold uppercase mb-2 fade-up" style={{ color: accent, letterSpacing: '0.09em' }}>Lesson {id + 1}</div>
+      <h1 className="leading-tight mb-3 fade-up d1" style={{ fontFamily: DISPLAY, color: C.text, fontSize: 'clamp(2.2rem, 5vw, 3rem)' }}>{lesson.title}</h1>
+      <p className="text-lg font-semibold mb-8 fade-up d2" style={{ color: C.text2 }}>{lesson.subtitle}</p>
+      <div className="glass mb-8 p-5 rounded-3xl fade-up d3" style={{ border: `2px solid ${accent}55`, boxShadow: `0 24px 60px -30px ${accent}` }}>
         <LessonHeroGraph id={id} />
       </div>
-      <div className="space-y-5 mb-10">
+      <div className="space-y-6 mb-10">
         {content.paras.map((p, i) => (
-          <p key={i} className={`text-sm leading-relaxed fade-up d${i + 4}`} style={{ color: i === 0 ? C.text2 : C.muted }}>{p}</p>
+          <p key={i} className={`text-lg leading-relaxed fade-up d${i + 4}`} style={{ color: i === 0 ? C.text : C.text2, fontWeight: i === 0 ? 600 : 500 }}>{p}</p>
         ))}
       </div>
-      <div className="p-4 rounded-xl fade-up d7" style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
-        <div className="text-xs mb-1" style={{ color: C.muted }}>Up next</div>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <div className="text-sm font-semibold" style={{ color: C.text }}>Learn how to — {nextLesson.title.toLowerCase()}</div>
-            <div className="text-xs mt-0.5" style={{ color: C.muted }}>{nextLesson.subtitle}</div>
-          </div>
-          <button onClick={onNext} className="px-4 py-2 rounded-lg text-sm font-semibold flex-shrink-0 transition-all hover:opacity-90"
-            style={{ backgroundColor: C.cyan, color: C.canvas }}>Next lesson</button>
+      <button onClick={onNext} className={`fill-hover glass w-full text-left rounded-2xl p-5 flex items-center justify-between gap-4 fade-up d7`}
+        style={{ ['--fill' as string]: ACCENTS[(id + 1) % ACCENTS.length], border: `2px solid ${C.border}` }}>
+        <div>
+          <div className="text-sm font-bold mb-1" style={{ color: C.muted }}>Up next</div>
+          <div className="text-lg font-bold" style={{ color: C.text }}>{nextLesson.title}</div>
+          <div className="text-sm font-semibold mt-0.5" style={{ color: C.text2 }}>{nextLesson.subtitle}</div>
         </div>
-      </div>
+        <span className="text-base font-bold flex-shrink-0" style={{ color: C.text }}>Next →</span>
+      </button>
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { C, DISPLAY } from '../theme/tokens'
 import { fmt } from '../utils/format'
 import { timeAgo } from '../utils/timeAgo'
-import SectionLabel from '../components/ui/SectionLabel'
+import PageHeader from '../components/ui/PageHeader'
 import TagChip from '../components/ui/TagChip'
 import { deletePortfolio, getPerformance, listPortfolios } from '../services/trackingService'
 import { sectorLabel } from '../services/portfolioService'
@@ -45,16 +45,16 @@ export default function Tracking({ onAskAdvisor, onBuild }: Props) {
     setList(rest); setPerf(null); setSelected(rest[0]?.id ?? null)
   }
 
-  if (error && !list) return <Shell><p className="text-sm" style={{ color: C.text2 }}>Couldn't load saved portfolios: {error}</p></Shell>
+  if (error && !list) return <Shell><p className="text-base font-semibold" style={{ color: C.text2 }} role="alert">Couldn't load saved portfolios: {error}</p></Shell>
   if (!list) return <Shell><div className="h-32 rounded-2xl animate-pulse" style={{ backgroundColor: C.card }} /></Shell>
 
   if (list.length === 0) {
     return (
       <Shell>
-        <div className="rounded-2xl p-6 text-center" style={{ backgroundColor: C.surface, border: `1px dashed ${C.border}` }}>
-          <div className="text-lg mb-1" style={{ fontFamily: DISPLAY, color: C.text }}>Nothing saved yet</div>
-          <p className="text-sm mb-4" style={{ color: C.muted }}>Build a portfolio, then tap <b style={{ color: C.cyan }}>Save &amp; track</b> to follow how it does at today's prices.</p>
-          <button onClick={onBuild} className="pressable px-4 py-2 rounded-lg text-sm font-semibold" style={{ backgroundColor: C.cyan, color: C.canvas }}>Go to Portfolio</button>
+        <div className="glass rounded-3xl p-10 text-center" style={{ border: `2px dashed ${C.border}` }}>
+          <div className="text-3xl mb-2" style={{ fontFamily: DISPLAY, color: C.text }}>Nothing saved yet</div>
+          <p className="text-lg font-semibold mb-6" style={{ color: C.text2 }}>Build a portfolio, then tap <b style={{ color: C.cyan }}>Save &amp; track</b> to follow how it does at today's prices.</p>
+          <button onClick={onBuild} className="cta px-8 py-4 rounded-2xl text-base font-bold" style={{ backgroundColor: C.cyan, color: C.canvas }}>Go to Portfolio →</button>
         </div>
       </Shell>
     )
@@ -63,96 +63,97 @@ export default function Tracking({ onAskAdvisor, onBuild }: Props) {
   const current = list.find(p => p.id === selected)
   const s = perf?.summary
 
+  const accent = (n: number) => (n > 0 ? C.teal : n < 0 ? C.pink : C.cyan)
+  const gl = s ? accent(s.total_gain_loss_usd) : C.cyan
+
   return (
     <Shell>
       {/* Saved portfolio picker */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-5 -mx-1 px-1">
-        {list.map(p => (
-          <button key={p.id} onClick={() => setSelected(p.id)} className="pressable flex-shrink-0 text-left rounded-xl px-3 py-2"
-            style={{ backgroundColor: p.id === selected ? `${C.cyan}14` : C.surface, border: `1px solid ${p.id === selected ? C.cyan : C.border}` }}>
-            <div className="text-sm font-semibold whitespace-nowrap" style={{ color: C.text }}>{p.portfolio_name}</div>
-            <div className="text-[11px]" style={{ color: C.muted }}>{fmt(Number(p.initial_investment))} · saved {timeAgo(p.created_at)}</div>
-          </button>
-        ))}
+      <div className="flex gap-3 overflow-x-auto pb-3 mb-6 -mx-1 px-1">
+        {list.map(p => {
+          const on = p.id === selected
+          return (
+            <button key={p.id} onClick={() => setSelected(p.id)} className="pressable glass flex-shrink-0 text-left rounded-2xl px-4 py-3"
+              style={{ backgroundColor: on ? C.cyan : undefined, border: `2px solid ${on ? C.cyan : C.border}` }}>
+              <div className="text-base font-bold whitespace-nowrap" style={{ color: on ? C.canvas : C.text }}>{p.portfolio_name}</div>
+              <div className="text-sm font-semibold" style={{ color: on ? C.canvas : C.muted }}>{fmt(Number(p.initial_investment))} · saved {timeAgo(p.created_at)}</div>
+            </button>
+          )
+        })}
       </div>
 
       {current && (
-        <div className="grid lg:grid-cols-12 gap-5">
-          {/* Summary hero */}
-          <section className="lg:col-span-7 fade-up">
-            <SectionLabel className="mb-2">Value at today's prices</SectionLabel>
-            <div className="leading-none mb-2" style={{ fontFamily: DISPLAY, color: C.text, fontSize: 'clamp(2.6rem, 6vw, 4.25rem)' }}>
-              {s ? money(s.current_value) : '…'}
-            </div>
-            {s && (
-              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                <span className="text-2xl font-semibold" style={{ color: tone(s.total_gain_loss_usd) }}>
-                  {signed(s.total_gain_loss_usd).replace(/^([+-])/, '$1$')}
-                </span>
-                <span className="text-lg font-semibold" style={{ color: tone(s.total_gain_loss_pct) }}>{signed(s.total_gain_loss_pct, '%')}</span>
-                <span className="text-sm" style={{ color: C.muted }}>since you saved it · invested {money(s.total_invested)}</span>
+        <>
+          {/* Hero: value now + actions */}
+          <section className="glass relative overflow-hidden rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:items-center fade-up"
+            style={{ border: `1px solid ${C.border}`, boxShadow: `0 30px 80px -40px ${gl}` }}>
+            <div className="absolute -top-24 -right-16 w-80 h-80 rounded-full pointer-events-none" aria-hidden
+              style={{ background: `radial-gradient(circle, ${gl}2e 0%, transparent 70%)` }} />
+            <div className="relative flex-1 min-w-0">
+              <div className="flex flex-wrap gap-2 mb-5">
+                <TagChip label={sectorLabel(current.target_sector)} color={C.cyan} />
+                <TagChip label={current.risk_strategy} color={C.violet} />
+                {s && s.stale_prices > 0 && <TagChip label={`${s.stale_prices} price${s.stale_prices > 1 ? 's' : ''} not live`} color={C.pink} />}
               </div>
-            )}
-            <div className="flex flex-wrap gap-2 mt-4">
-              <TagChip label={sectorLabel(current.target_sector)} color={C.cyan} />
-              <TagChip label={current.risk_strategy} color={C.violet} />
-              {s && s.stale_prices > 0 && <TagChip label={`${s.stale_prices} price${s.stale_prices > 1 ? 's' : ''} not live`} color={C.pink} />}
+              <div className="text-sm font-bold uppercase mb-2" style={{ color: C.muted, letterSpacing: '0.09em' }}>Worth at today's prices</div>
+              <div className="leading-none mb-3" style={{ fontFamily: DISPLAY, color: C.text, fontSize: 'clamp(3rem, 7vw, 5rem)' }}>
+                {s ? money(s.current_value) : '…'}
+              </div>
+              {s && (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <span className="text-2xl font-bold px-3 py-1 rounded-xl" style={{ color: C.canvas, backgroundColor: gl }}>
+                    {signed(s.total_gain_loss_usd).replace(/^([+-])/, '$1$')} ({signed(s.total_gain_loss_pct, '%')})
+                  </span>
+                  <span className="text-base font-semibold" style={{ color: C.text2 }}>since you saved it · you put in {money(s.total_invested)}</span>
+                </div>
+              )}
             </div>
-          </section>
-
-          <section className="lg:col-span-5 rounded-2xl p-5 flex flex-col gap-3 fade-up d2" style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
-            <button onClick={() => onAskAdvisor(current.id)} className="pressable rounded-xl p-3 text-left" style={{ backgroundColor: `${C.pink}14`, border: `1px solid ${C.pink}40` }}>
-              <div className="text-sm font-semibold" style={{ color: C.pink }}>Why is it up or down?</div>
-              <div className="text-xs" style={{ color: C.muted }}>The advisor checks live prices and news for the biggest mover.</div>
-            </button>
-            <div className="flex gap-2">
-              <button onClick={() => refresh(current.id)} disabled={loadingPerf} className="pressable flex-1 py-2 rounded-lg text-sm font-semibold disabled:opacity-60"
+            <div className="relative flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-72 flex-shrink-0">
+              <button onClick={() => onAskAdvisor(current.id)} className="cta px-6 py-4 rounded-2xl text-base font-bold"
+                style={{ backgroundColor: C.pink, color: C.canvas, ['--glow' as string]: C.pink }}>Why is it up or down?</button>
+              <button onClick={() => refresh(current.id)} disabled={loadingPerf} className="cta px-6 py-4 rounded-2xl text-base font-bold disabled:opacity-60"
                 style={{ backgroundColor: C.cyan, color: C.canvas }}>{loadingPerf ? 'Refreshing…' : 'Refresh prices'}</button>
-              <button onClick={() => remove(current.id)} className="pressable px-3 py-2 rounded-lg text-sm" style={{ color: C.muted, border: `1px solid ${C.border}` }}>Remove</button>
+              <button onClick={() => remove(current.id)} className="pressable px-6 py-3 rounded-2xl text-sm font-bold"
+                style={{ color: C.text2, border: `2px solid ${C.border}` }}>Remove portfolio</button>
             </div>
-            <p className="text-[11px]" style={{ color: C.muted }}>
-              {updatedAt ? `Updated ${timeAgo(new Date(updatedAt).toISOString())}. ` : ''}
-              {USE_MOCK ? 'Mock mode: prices stay at their saved value.' : 'Prices come from the latest market close.'}
-            </p>
           </section>
+          <p className="text-sm font-semibold mt-3 px-1" style={{ color: C.muted }}>
+            {updatedAt ? `Updated ${timeAgo(new Date(updatedAt).toISOString())}. ` : ''}
+            {USE_MOCK ? 'Mock mode: prices stay at their saved value.' : 'Prices come from the latest market close.'}
+          </p>
 
-          {/* Holdings */}
-          <section className="lg:col-span-12">
-            <SectionLabel className="mb-3">Holdings</SectionLabel>
-            {error && <p className="text-sm mb-2" style={{ color: C.pink }}>{error}</p>}
-            <div className="grid sm:grid-cols-2 gap-3">
-              {(perf?.holdings ?? []).map((h, i) => {
-                const max = Math.max(...(perf?.holdings ?? []).map(x => x.current_value), 1)
-                return (
-                  <div key={h.ticker} className={`rounded-xl p-4 fade-up d${Math.min(i + 2, 8)}`} style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm font-bold" style={{ color: C.text }}>{h.ticker}</span>
-                          <span className="text-xs truncate" style={{ color: C.muted }}>{h.name}</span>
-                        </div>
-                        <div className="text-xs mt-1" style={{ color: C.muted }}>
-                          {h.shares} sh · bought {money(h.buy_price)} · now {money(h.current_price)}{!h.price_is_live && ' (not live)'}
-                        </div>
-                      </div>
-                      <span className="text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0"
-                        style={{ color: tone(h.gain_loss_pct), backgroundColor: `${tone(h.gain_loss_pct)}18` }}>
-                        {signed(h.gain_loss_pct, '%')}
-                      </span>
+          {/* Holdings, side by side */}
+          <h2 className="text-3xl mt-10 mb-4" style={{ fontFamily: DISPLAY, color: C.text }}>How each stock is doing</h2>
+          {error && <p className="text-base font-bold mb-3" style={{ color: C.pink }} role="alert">{error}</p>}
+          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+            {(perf?.holdings ?? []).map((h, i) => {
+              const c = accent(h.gain_loss_usd)
+              const total = Math.max(s?.current_value ?? 0, 1)
+              return (
+                <div key={h.ticker} className={`fill-hover glass rounded-2xl p-5 fade-up d${Math.min(i + 2, 8)}`}
+                  style={{ ['--fill' as string]: c, border: `2px solid ${C.border}` }}>
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="min-w-0">
+                      <div className="text-lg font-bold" style={{ color: C.text }}>{h.ticker}</div>
+                      <div className="text-sm font-semibold truncate" style={{ color: C.muted }}>{h.name}</div>
                     </div>
-                    <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: C.border }}>
-                      <div className="h-full rounded-full" style={{ width: `${(h.current_value / max) * 100}%`, backgroundColor: tone(h.gain_loss_usd) === C.muted ? C.cyan : tone(h.gain_loss_usd) }} />
-                    </div>
-                    <div className="flex justify-between text-xs mt-1.5" style={{ color: C.muted }}>
-                      <span>{money(h.current_value)}</span>
-                      <span style={{ color: tone(h.gain_loss_usd) }}>{signed(h.gain_loss_usd).replace(/^([+-])/, '$1$')}</span>
-                    </div>
+                    <span className="on-fill-bg text-sm font-bold px-2.5 py-1 rounded-full flex-shrink-0" style={{ color: c, backgroundColor: `${c}22` }}>
+                      {signed(h.gain_loss_pct, '%')}
+                    </span>
                   </div>
-                )
-              })}
-            </div>
-          </section>
-        </div>
+                  <div className="text-3xl font-bold" style={{ color: C.text }}>{money(h.current_value)}</div>
+                  <div className="text-base font-bold mt-1" style={{ color: c }}>{signed(h.gain_loss_usd).replace(/^([+-])/, '$1$')} since saved</div>
+                  <div className="on-fill-track mt-3 h-2 rounded-full overflow-hidden" style={{ backgroundColor: C.border }}>
+                    <div className="on-fill-bar h-full rounded-full" style={{ width: `${(h.current_value / total) * 100}%`, backgroundColor: c }} />
+                  </div>
+                  <div className="text-sm font-semibold mt-3" style={{ color: C.text2 }}>
+                    {h.shares} shares · bought at {money(h.buy_price)} · now {money(h.current_price)}{!h.price_is_live && ' (not live)'}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
       )}
     </Shell>
   )
@@ -160,9 +161,8 @@ export default function Tracking({ onAskAdvisor, onBuild }: Props) {
 
 function Shell({ children }: { children: ReactNode }) {
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-5xl mx-auto">
-      <h2 className="text-2xl mb-1" style={{ fontFamily: DISPLAY, color: C.text }}>Tracking</h2>
-      <p className="text-sm mb-6" style={{ color: C.muted }}>Your saved practice portfolios, valued at today's prices.</p>
+    <div className="px-4 sm:px-8 py-8 max-w-7xl mx-auto">
+      <PageHeader title="Tracking" subtitle="Your saved practice portfolios, valued at today's prices." />
       {children}
     </div>
   )

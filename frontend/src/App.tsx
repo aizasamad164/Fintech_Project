@@ -35,6 +35,8 @@ export default function App() {
   // Shared with the Advisor tab: what's on the dashboard, or which saved portfolio to discuss
   const [dashPortfolio, setDashPortfolio] = useState<Portfolio | null>(null)
   const [advisorPortfolioId, setAdvisorPortfolioId] = useState<string | null>(null)
+  // Where to go after the Pro paywall: back into onboarding, or back into the app
+  const [proReturn, setProReturn] = useState<'sector' | 'nav'>('nav')
 
   // Every full-screen change is a push edit: forward slides in from the right,
   // going back slides in from the left.
@@ -43,29 +45,31 @@ export default function App() {
   const wrap = (node: ReactNode) => <div key={screen} className={dir}>{node}</div>
 
   const handleViewPortfolio = useCallback((s: Sector, r: Risk) => { setSector(s); setRisk(r); setTab('portfolio') }, [])
+  const openPaywall = (from: 'sector' | 'nav') => { setProReturn(from); go('paywall') }
 
   // Onboarding (full-screen, before the nav appears)
   if (screen === 'login') return wrap(<Login onLogin={() => go('budget')} />)
   if (screen === 'budget') return wrap(<BudgetStep onNext={b => { setBudget(b); go('risk') }} />)
   if (screen === 'risk') return wrap(<RiskStep onNext={r => { setRisk(r); go('sector') }} onBack={() => go('budget', true)} />)
-  if (screen === 'sector') return wrap(<SectorStep onNext={s => { setSector(s); prefetchPortfolio(budget, risk, s); go('processing') }} onBack={() => go('risk', true)} />)
+  if (screen === 'sector') return wrap(<SectorStep isPro={isPro} onLocked={() => openPaywall('sector')}
+    onNext={s => { setSector(s); prefetchPortfolio(budget, risk, s); go('processing') }} onBack={() => go('risk', true)} />)
   if (screen === 'processing') return wrap(<Processing onDone={() => go('nav')} />)
 
   // Pro flow (full-screen, outside the nav)
-  if (screen === 'paywall') return wrap(<Paywall onUpgrade={() => go('checkout')} onBack={() => go('nav', true)} />)
+  if (screen === 'paywall') return wrap(<Paywall onUpgrade={() => go('checkout')} onBack={() => go(proReturn, true)} />)
   if (screen === 'checkout') return wrap(<Checkout onSuccess={() => go('pro-success')} onBack={() => go('paywall', true)} />)
-  if (screen === 'pro-success') return wrap(<ProSuccess onDone={() => { setIsPro(true); setTab('insights'); go('nav') }} />)
+  if (screen === 'pro-success') return wrap(<ProSuccess onDone={() => { setIsPro(true); if (proReturn === 'nav') setTab('insights'); go(proReturn) }} />)
 
   // Main app with tabs
   return wrap(
-    <NavShell tab={tab} setTab={setTab}>
+    <NavShell tab={tab} setTab={setTab} isPro={isPro}>
       {tab === 'portfolio' && (
-        <Dashboard budget={budget} risk={risk} sector={sector} variant={dashVariant}
+        <Dashboard budget={budget} risk={risk} sector={sector} variant={dashVariant} isPro={isPro} onLocked={() => openPaywall('nav')}
           onVariant={setDashVariant} onRisk={setRisk} onSector={setSector} onBudget={setBudget}
           onPortfolio={setDashPortfolio} onOpenTracking={() => setTab('tracking')}
           onAskAdvisor={() => { setAdvisorPortfolioId(null); setTab('advisor') }} />
       )}
-      {tab === 'insights' && <Insights isPro={isPro} onUnlock={() => go('paywall')} onViewPortfolio={handleViewPortfolio} />}
+      {tab === 'insights' && <Insights isPro={isPro} onUnlock={() => openPaywall('nav')} onViewPortfolio={handleViewPortfolio} />}
       {tab === 'tracking' && <Tracking onBuild={() => setTab('portfolio')}
         onAskAdvisor={id => { setAdvisorPortfolioId(id); setTab('advisor') }} />}
       {tab === 'advisor' && <Advisor dashboard={dashPortfolio} savedPortfolioId={advisorPortfolioId}
@@ -73,7 +77,7 @@ export default function App() {
       {tab === 'learn' && (lessonId !== null
         ? <div key={lessonId} className="push-fwd"><LessonDetail id={lessonId} onBack={() => setLessonId(null)} onNext={() => setLessonId((lessonId + 1) % LESSONS.length)} /></div>
         : <div key="list" className="push-back"><LearnTab onLesson={setLessonId} /></div>)}
-      {tab === 'account' && <Account isPro={isPro} onUpgrade={() => go('paywall')} onSignOut={() => { setIsPro(false); go('login', true) }} />}
+      {tab === 'account' && <Account isPro={isPro} onUpgrade={() => openPaywall('nav')} onSignOut={() => { setIsPro(false); go('login', true) }} />}
     </NavShell>
   )
 }

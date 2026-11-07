@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { C, DISPLAY } from '../theme/tokens'
-import ParticleField from '../components/effects/ParticleField'
+import LiveBackdrop from '../components/effects/LiveBackdrop'
 
 // TODO (backend): replace onLogin() with Supabase auth via src/lib/supabaseClient.ts
 export default function Login({ onLogin }: { onLogin: () => void }) {
@@ -15,37 +15,10 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
 
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center px-5" style={{ backgroundColor: C.canvas }}>
-      {/* ── Living backdrop ─────────────────────────────────────────── */}
-      <div className="absolute inset-0 grid-drift" aria-hidden />
-      <ParticleField />
-      {/* Glow pools */}
-      <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full breathe pointer-events-none" aria-hidden
-        style={{ background: `radial-gradient(circle, ${C.violet}33 0%, transparent 65%)` }} />
-      <div className="absolute -bottom-48 -right-24 w-[560px] h-[560px] rounded-full breathe pointer-events-none" aria-hidden
-        style={{ background: `radial-gradient(circle, ${C.pink}2b 0%, transparent 65%)`, animationDelay: '2.5s' }} />
-      {/* Orbiting rings behind the form */}
-      <svg className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] max-w-none pointer-events-none" viewBox="0 0 760 760" aria-hidden>
-        <defs>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" /></filter>
-        </defs>
-        <g className="orbit-slow" style={{ transformOrigin: '380px 380px' }}>
-          <circle cx="380" cy="380" r="340" fill="none" stroke={C.cyan} strokeOpacity="0.14" strokeDasharray="2 10" />
-          <circle cx="380" cy="40" r="4" fill={C.cyan} />
-          <circle cx="380" cy="40" r="8" fill={C.cyan} filter="url(#glow)" opacity="0.7" />
-        </g>
-        <g className="orbit-mid" style={{ transformOrigin: '380px 380px' }}>
-          <circle cx="380" cy="380" r="270" fill="none" stroke={C.violet} strokeOpacity="0.2" />
-          <path d="M 380 110 A 270 270 0 0 1 614 245" fill="none" stroke={C.pink} strokeWidth="2" strokeLinecap="round" />
-          <path d="M 380 110 A 270 270 0 0 1 614 245" fill="none" stroke={C.pink} strokeWidth="6" strokeLinecap="round" filter="url(#glow)" opacity="0.6" />
-        </g>
-        <g className="orbit-fast" style={{ transformOrigin: '380px 380px' }}>
-          <circle cx="380" cy="380" r="205" fill="none" stroke={C.cyan} strokeOpacity="0.08" strokeDasharray="60 24" />
-          <circle cx="585" cy="380" r="3" fill={C.violet} />
-        </g>
-      </svg>
+      <LiveBackdrop />
 
       {/* ── Form panel ──────────────────────────────────────────────── */}
-      <div className="relative w-full max-w-sm scale-up">
+      <div className="relative w-full max-w-sm scale-up" style={{ zIndex: 1 }}>
         <div className="rounded-2xl p-7 sm:p-8"
           style={{
             backgroundColor: 'rgba(19,29,46,0.62)',

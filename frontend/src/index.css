@@ -8,9 +8,15 @@ html, body, #root {
   height: 100%;
 }
 
+/* Everything in Tailwind is sized in rem, so this one line scales the whole
+   app up for readability. */
+html { font-size: 16px; }
+@media (min-width: 640px) { html { font-size: 17px; } }
+
 body {
-  background-color: #0D1420;
-  color: #E8EDF5;
+  background-color: #0A101B;
+  color: #F5F8FC;
+  font-weight: 500;
   font-family: 'Space Grotesk', system-ui, sans-serif;
   /* Tabular figures: every digit is the same width, so prices and
      percentages line up in columns instead of jittering. */
@@ -18,7 +24,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-button, input { font-family: inherit; }
+button, input, select, textarea { font-family: inherit; }
 
 /* ── Entrance animations ─────────────────────────────────────────────────── */
 @keyframes fadeUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -84,10 +90,65 @@ button, input { font-family: inherit; }
 .orbit-fast  { animation: spin 16s linear infinite; transform-origin: center; }
 .breathe     { animation: breathe 5s ease-in-out infinite; }
 
+/* ── Hover-fill cards ───────────────────────────────────────────────────────
+   Set --fill to the card's strategy colour. On hover (or when selected via
+   data-active="true") the card grows slightly and fills with that colour,
+   and all its text flips to dark so it stays readable. */
+.fill-hover {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease,
+              border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.fill-hover:hover, .fill-hover[data-active="true"] {
+  transform: scale(1.025);
+  background-color: var(--fill) !important;
+  border-color: var(--fill) !important;
+  box-shadow: 0 18px 50px -14px var(--fill);
+}
+.fill-hover:hover *, .fill-hover[data-active="true"] * {
+  color: #0A101B !important;
+  border-color: rgba(10, 16, 27, 0.35) !important;
+}
+.fill-hover:hover .on-fill-bg, .fill-hover[data-active="true"] .on-fill-bg {
+  background-color: rgba(10, 16, 27, 0.14) !important;
+}
+.fill-hover:active { transform: scale(1.0); }
+
+/* Lighter version for dense cards: lift + tinted glow, text keeps its colour */
+.tint-hover {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease,
+              border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.tint-hover:hover {
+  transform: translateY(-3px) scale(1.015);
+  border-color: var(--fill) !important;
+  background-color: color-mix(in srgb, var(--fill) 14%, #131D30) !important;
+  box-shadow: 0 16px 40px -16px var(--fill);
+}
+
+/* Big call-to-action buttons */
+.cta {
+  transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+  box-shadow: 0 10px 30px -10px var(--glow, #4FD8E8);
+}
+.cta:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); box-shadow: 0 16px 44px -10px var(--glow, #4FD8E8); filter: brightness(1.06); }
+.cta:active:not(:disabled) { transform: scale(0.98); }
+.cta:disabled { box-shadow: none; }
+
+/* Glass panels sitting on top of the animated backdrop */
+.glass {
+  background-color: rgba(19, 29, 48, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Loading radar glow */
+@keyframes pulseGlow { 0%, 100% { filter: drop-shadow(0 0 10px rgba(79,216,232,.45)); } 50% { filter: drop-shadow(0 0 26px rgba(245,53,170,.6)); } }
+.radar-glow { animation: pulseGlow 2.4s ease-in-out infinite; }
+
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #26314A; border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: #2F3D5C; border-radius: 2px; }
 
 /* ── Input resets ────────────────────────────────────────────────────────── */
 input[type='number']::-webkit-inner-spin-button,
@@ -108,3 +169,9 @@ input[type='number'] { -moz-appearance: textfield; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Inside a filled card, sparklines and bars switch to dark so they stay visible */
+.fill-hover:hover .spark polyline, .fill-hover[data-active="true"] .spark polyline { stroke: #0A101B !important; }
+.fill-hover:hover .spark circle, .fill-hover[data-active="true"] .spark circle { fill: #0A101B !important; }
+.fill-hover:hover .on-fill-bar, .fill-hover[data-active="true"] .on-fill-bar { background-color: #0A101B !important; }
+.fill-hover:hover .on-fill-track, .fill-hover[data-active="true"] .on-fill-track { background-color: rgba(10, 16, 27, 0.2) !important; }

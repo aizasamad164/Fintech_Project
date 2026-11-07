@@ -1,8 +1,9 @@
 import { C } from '../../theme/tokens'
 import { fmt } from '../../utils/format'
 
-export default function HistChart({ historical }: { historical: { month: string; value: number }[] }) {
-  const W = 560, H = 160, PL = 70, PB = 30, PR = 16, PT = 12
+// `compact` uses a narrower canvas so labels stay readable inside small cards.
+export default function HistChart({ historical, compact = false }: { historical: { month: string; value: number }[]; compact?: boolean }) {
+  const W = compact ? 340 : 560, H = compact ? 200 : 160, PL = compact ? 50 : 70, PB = 30, PR = 12, PT = 12
   const vals = historical.map(m => m.value)
   const min = Math.min(...vals) * 0.97, max = Math.max(...vals) * 1.02, rng = max - min || 1
   const x = (i: number) => PL + (i / (vals.length - 1)) * (W - PL - PR)
@@ -21,13 +22,13 @@ export default function HistChart({ historical }: { historical: { month: string;
       {ticks.map((t, i) => (
         <g key={i}>
           <line x1={PL} y1={y(t)} x2={W - PR} y2={y(t)} stroke={C.border} strokeWidth="1" />
-          <text x={PL - 6} y={y(t) + 4} textAnchor="end" fontSize="10" fill={C.muted} fontFamily="inherit">{fmt(t, true)}</text>
+          <text x={PL - 6} y={y(t) + 4} textAnchor="end" fontSize="11" fontWeight="600" fill={C.muted} fontFamily="inherit">{fmt(t, true)}</text>
         </g>
       ))}
       <path d={areaD} fill="url(#hg)" />
-      <polyline points={linePts} fill="none" stroke={lineColor} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      <polyline points={linePts} fill="none" stroke={lineColor} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
       {historical.map((m, i) => i % 2 === 0 && (
-        <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10" fill={C.muted} fontFamily="inherit">{m.month}</text>
+        <text key={i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="11" fontWeight="600" fill={C.muted} fontFamily="inherit">{m.month}</text>
       ))}
       <circle cx={x(vals.length - 1)} cy={y(vals[vals.length - 1])} r="4" fill={lineColor} />
     </svg>

@@ -1,55 +1,71 @@
-import { C } from '../../theme/tokens'
+import { C, riskColor } from '../../theme/tokens'
 import { fmt } from '../../utils/format'
-import { RISKS, SECTORS } from '../../data/options'
+import { RISKS, SECTOR_OPTS, isProSector } from '../../data/options'
 import type { Risk, Sector } from '../../types/portfolio'
 
 interface Props {
   risk: Risk; sector: Sector; budget: number
+  isPro: boolean
   onRisk: (r: Risk) => void; onSector: (s: Sector) => void; onBudget: (b: number) => void
+  onLocked: () => void
   onClose: () => void
 }
 
-const label = { color: C.muted, letterSpacing: '0.05em' }
+const Label = ({ children }: { children: string }) => (
+  <div className="text-sm font-bold mb-2.5" style={{ color: C.text2 }}>{children}</div>
+)
 
-export default function AdjustPanel({ risk, sector, budget, onRisk, onSector, onBudget, onClose }: Props) {
+export default function AdjustPanel({ risk, sector, budget, isPro, onRisk, onSector, onBudget, onLocked, onClose }: Props) {
   return (
-    <div className="rounded-xl p-5 mt-3 fade-up" style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
+    <div className="glass rounded-2xl p-5 sm:p-6 mt-4 fade-up" style={{ border: `2px solid ${C.pink}66`, boxShadow: `0 20px 50px -24px ${C.pink}` }}>
       <div className="flex items-center justify-between mb-5">
-        <span className="text-sm font-semibold" style={{ color: C.text }}>Adjust portfolio</span>
-        <button onClick={onClose} className="text-xs px-2 py-1 rounded" style={{ color: C.muted }}>Close ×</button>
+        <span className="text-lg font-bold" style={{ color: C.text }}>Adjust your portfolio</span>
+        <button onClick={onClose} className="pressable text-sm font-bold px-3 py-1.5 rounded-lg" style={{ color: C.text2, border: `1px solid ${C.border}` }}>Done</button>
       </div>
-      <div className="space-y-5">
+      <div className="grid gap-6 lg:grid-cols-3">
         <div>
-          <div className="text-xs font-semibold mb-2" style={label}>BUDGET</div>
-          <div className="flex gap-2 flex-wrap">
-            {[1000, 5000, 10000, 25000, 50000].map(a => (
-              <button key={a} onClick={() => onBudget(a)} className="px-3 py-1.5 text-xs rounded-lg transition-all"
-                style={{ border: `1px solid ${budget === a ? C.violet : C.border}`, color: budget === a ? C.violet : C.muted, backgroundColor: budget === a ? `${C.violet}15` : 'transparent' }}>
-                {fmt(a)}
-              </button>
-            ))}
+          <Label>Budget</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {[1000, 2500, 5000, 10000, 25000, 50000].map(a => {
+              const on = budget === a
+              return (
+                <button key={a} onClick={() => onBudget(a)} className="pressable py-2.5 text-sm font-bold rounded-xl"
+                  style={{ border: `2px solid ${on ? C.violet : C.border}`, color: on ? C.canvas : C.text, backgroundColor: on ? C.violet : 'transparent' }}>
+                  {fmt(a)}
+                </button>
+              )
+            })}
           </div>
         </div>
         <div>
-          <div className="text-xs font-semibold mb-2" style={label}>RISK STRATEGY</div>
-          <div className="flex rounded-lg overflow-hidden" style={{ border: `1px solid ${C.border}` }}>
-            {RISKS.map((r, i) => (
-              <button key={r} onClick={() => onRisk(r)} className="flex-1 py-2 text-xs font-medium transition-all"
-                style={{ backgroundColor: risk === r ? C.cyan : 'transparent', color: risk === r ? C.canvas : C.muted, fontWeight: risk === r ? 700 : 400, borderRight: i < 2 ? `1px solid ${C.border}` : 'none' }}>
-                {r}
-              </button>
-            ))}
+          <Label>Risk strategy</Label>
+          <div className="flex flex-col gap-2">
+            {RISKS.map(r => {
+              const on = risk === r, c = riskColor(r)
+              return (
+                <button key={r} onClick={() => onRisk(r)} className="pressable py-2.5 px-4 text-sm font-bold rounded-xl text-left flex items-center gap-2"
+                  style={{ border: `2px solid ${on ? c : C.border}`, color: on ? C.canvas : C.text, backgroundColor: on ? c : 'transparent' }}>
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: on ? C.canvas : c }} />{r}
+                </button>
+              )
+            })}
           </div>
         </div>
         <div>
-          <div className="text-xs font-semibold mb-2" style={label}>SECTOR</div>
-          <div className="flex flex-wrap gap-2">
-            {SECTORS.map(s => (
-              <button key={s} onClick={() => onSector(s)} className="px-3 py-1.5 text-xs rounded-lg transition-all"
-                style={{ border: `1px solid ${sector === s ? C.cyan : C.border}`, color: sector === s ? C.cyan : C.muted, backgroundColor: sector === s ? `${C.cyan}15` : 'transparent', fontWeight: sector === s ? 600 : 400 }}>
-                {s}
-              </button>
-            ))}
+          <Label>Sector</Label>
+          <div className="flex flex-col gap-2">
+            {SECTOR_OPTS.map(o => {
+              const on = sector === o.v
+              const locked = isProSector(o.v) && !isPro
+              return (
+                <button key={o.v} onClick={() => (locked ? onLocked() : onSector(o.v))}
+                  className="pressable py-2.5 px-4 text-sm font-bold rounded-xl text-left flex items-center justify-between gap-2"
+                  style={{ border: `2px solid ${on ? o.color : C.border}`, color: on ? C.canvas : C.text, backgroundColor: on ? o.color : 'transparent' }}>
+                  {o.v}
+                  {locked && <span className="text-xs font-bold" style={{ color: C.pink }}>🔒 Pro</span>}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

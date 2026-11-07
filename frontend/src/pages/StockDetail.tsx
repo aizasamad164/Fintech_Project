@@ -1,4 +1,4 @@
-import { C, DISPLAY, riskColor } from '../theme/tokens'
+import { C, DISPLAY } from '../theme/tokens'
 import { fmt } from '../utils/format'
 import TagChip from '../components/ui/TagChip'
 import SectionLabel from '../components/ui/SectionLabel'
@@ -7,60 +7,79 @@ import NewsCard from '../components/news/NewsCard'
 import { BackLink } from '../components/ui/Buttons'
 import type { PortfolioStock, Risk } from '../types/portfolio'
 
-const MONTHS = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug']
+const FALLBACK_MONTHS = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug']
 
 const WHY: Record<Risk, string> = {
-  Conservative: 'An established company with steadier price moves. It anchors the portfolio so one bad month elsewhere hurts less.',
+  Conservative: 'An established company whose price moves more steadily. It anchors the portfolio, so one bad month elsewhere hurts less.',
   Balanced: 'A middle-ground pick: more growth potential than the steadiest names, without the biggest swings.',
-  Aggressive: 'A higher-growth, higher-swing pick. It adds upside potential, and also most of the portfolio\'s month-to-month movement.',
+  Aggressive: "A higher-growth, higher-swing pick. It adds upside potential, and also most of the portfolio's month-to-month movement.",
 }
+const OUTLOOK: Record<string, string> = { BUY: 'Positive', HOLD: 'Neutral', SELL: 'Negative' }
 
-export default function StockDetail({ stock, color, onBack }: { stock: PortfolioStock; color: string; onBack: () => void }) {
+interface Props { stock: PortfolioStock; color: string; budget: number; months?: string[]; onBack: () => void }
+
+/** The screen a stock card "zooms" into. Themed in the stock's strategy colour. */
+export default function StockDetail({ stock, color, budget, months, onBack }: Props) {
   const up = stock.yearReturn >= 0
-  const historical = stock.trend.map((v, i) => ({ month: MONTHS[i], value: Math.round(stock.dollars * v / stock.trend[0]) }))
+  const labels = months && months.length >= stock.trend.length ? months.slice(-stock.trend.length) : FALLBACK_MONTHS.slice(-stock.trend.length)
+  const historical = stock.trend.map((v, i) => ({ month: labels[i] ?? '', value: Math.round(stock.dollars * v / stock.trend[0]) }))
   const stats: [string, string, string?][] = [
-    ['Weight', `${stock.allocation}%`],
-    ['Invested', fmt(stock.dollars)],
-    ['Shares', `${stock.shares}`],
-    ['Share price', fmt(stock.sharePrice)],
+    ['Your money in it', fmt(stock.dollars)],
+    ['Share of your total', `${stock.allocation}%`],
+    ['Shares you\'d own', `${stock.shares}`],
+    ['Price per share', fmt(stock.sharePrice)],
+    ['Price swings', stock.volatility, stock.volatility === 'High' ? C.pink : stock.volatility === 'Medium' ? C.cyan : C.teal],
     stock.mlSignal
-      ? ['Model signal (5-day)', `${stock.mlSignal} · ${stock.predicted5d ?? ''}`, stock.mlSignal === 'BUY' ? C.teal : stock.mlSignal === 'SELL' ? C.pink : C.cyan]
+      ? ['Model outlook (5 days)', OUTLOOK[stock.mlSignal] ?? stock.mlSignal, stock.mlSignal === 'BUY' ? C.teal : stock.mlSignal === 'SELL' ? C.pink : C.cyan]
       : ['P/E ratio', stock.peRatio != null ? `${stock.peRatio}` : '—'],
-    ['Volatility', stock.volatility, stock.volatility === 'High' ? C.pink : stock.volatility === 'Medium' ? C.cyan : C.teal],
   ]
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-5xl mx-auto">
+    <div className="px-4 sm:px-8 py-6 max-w-6xl mx-auto">
       <BackLink label="Back to portfolio" onClick={onBack} />
 
-      <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
-        <div className="lg:col-span-7">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold" style={{ backgroundColor: `${color}22`, color, boxShadow: `0 0 24px -6px ${color}` }}>{stock.ticker.slice(0, 2)}</div>
-            <div>
-              <div className="text-2xl font-bold leading-none" style={{ color: C.text }}>{stock.ticker}</div>
-              <div className="text-sm mt-1" style={{ color: C.muted }}>{stock.name}</div>
-            </div>
+      {/* Hero, tinted in the strategy colour */}
+      <section className="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-6"
+        style={{ background: `linear-gradient(135deg, ${color}40 0%, ${color}14 45%, rgba(19,29,48,0.85) 100%)`,
+          border: `2px solid ${color}88`, boxShadow: `0 30px 80px -30px ${color}` }}>
+        <div className="flex flex-wrap items-center gap-4 mb-5">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-bold"
+            style={{ backgroundColor: color, color: C.canvas, boxShadow: `0 0 30px -4px ${color}` }}>{stock.ticker.slice(0, 4)}</div>
+          <div className="min-w-0">
+            <div className="text-4xl font-bold leading-none" style={{ color: C.text }}>{stock.ticker}</div>
+            <div className="text-lg font-semibold mt-1" style={{ color: C.text2 }}>{stock.name}</div>
           </div>
-          <div className="flex flex-wrap gap-2 mb-6">
-            <TagChip label={stock.sector} color={C.muted} />
-            <TagChip label={`Risk: ${stock.riskClass}`} color={riskColor(stock.riskClass)} />
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
+            <TagChip label={stock.sector} color={C.text2} />
+            <TagChip label={`${stock.riskClass} pick`} color={color} />
           </div>
-          <div className="flex items-baseline gap-3 mb-6">
-            <span className="text-5xl" style={{ fontFamily: DISPLAY, color: C.text }}>{fmt(stock.sharePrice)}</span>
-            <span className="text-lg font-semibold" style={{ color: up ? C.teal : C.pink }}>{up ? '+' : ''}{stock.yearReturn.toFixed(1)}% · 1 yr</span>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <div className="text-sm font-bold uppercase" style={{ color: C.text2, letterSpacing: '0.08em' }}>Your share</div>
+            <div className="text-5xl font-bold leading-tight" style={{ color: C.text }}>{stock.allocation}%</div>
+            <div className="text-lg font-bold" style={{ color: C.text2 }}>= {fmt(stock.dollars)} of your {fmt(budget)}</div>
           </div>
-          <div className="rounded-2xl p-4 mb-6" style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
-            <SectionLabel className="mb-3">Your {fmt(stock.dollars)} over 12 months (illustrative)</SectionLabel>
+          <div>
+            <div className="text-sm font-bold uppercase" style={{ color: C.text2, letterSpacing: '0.08em' }}>Price today</div>
+            <div className="text-5xl leading-tight" style={{ fontFamily: DISPLAY, color: C.text }}>{fmt(stock.sharePrice)}</div>
+            <div className="text-lg font-bold" style={{ color: up ? C.teal : C.pink }}>{up ? '+' : ''}{stock.yearReturn.toFixed(1)}% over the past year</div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-7 space-y-6">
+          <div className="glass rounded-3xl p-5" style={{ border: `1px solid ${C.border}` }}>
+            <SectionLabel className="mb-3">Your {fmt(stock.dollars)} over the past 12 months</SectionLabel>
             <HistChart historical={historical} />
           </div>
-          <div className="rounded-xl p-4" style={{ backgroundColor: C.surface, borderLeft: `3px solid ${color}` }}>
-            <div className="text-sm font-semibold mb-1" style={{ color: C.text }}>Why it's in your portfolio</div>
-            <p className="text-sm leading-relaxed" style={{ color: C.text2 }}>{WHY[stock.riskClass]}</p>
+          <div className="glass rounded-3xl p-5" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${color}` }}>
+            <div className="text-lg font-bold mb-2" style={{ color: C.text }}>Why it's in your portfolio</div>
+            <p className="text-base font-medium leading-relaxed" style={{ color: C.text2 }}>{WHY[stock.riskClass]}</p>
             {stock.mlSignal && (
-              <p className="text-xs leading-relaxed mt-2" style={{ color: C.muted }}>
-                The sector model rates it <span style={{ color: C.text2, fontWeight: 600 }}>{stock.mlSignal}</span> with{' '}
-                {Math.round((stock.mlConfidence ?? 0.5) * 100)}% confidence, expecting about {stock.predicted5d} over the next 5 trading days.
-                Short-term model estimates are often wrong; treat this as one input, not a forecast.
+              <p className="text-sm font-medium leading-relaxed mt-3" style={{ color: C.muted }}>
+                The sector model's short-term outlook is <b style={{ color: C.text2 }}>{(OUTLOOK[stock.mlSignal] ?? stock.mlSignal).toLowerCase()}</b> ({Math.round((stock.mlConfidence ?? 0.5) * 100)}% confidence,
+                about {stock.predicted5d} over the next 5 trading days). Short-term estimates are often wrong, so treat this as one input, not a forecast.
               </p>
             )}
           </div>
@@ -69,9 +88,9 @@ export default function StockDetail({ stock, color, onBack }: { stock: Portfolio
         <div className="lg:col-span-5 space-y-6">
           <div className="grid grid-cols-2 gap-3">
             {stats.map(([k, v, c]) => (
-              <div key={k} className="rounded-xl p-3.5" style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
-                <div className="text-[11px] mb-1" style={{ color: C.muted }}>{k}</div>
-                <div className="text-lg font-semibold" style={{ color: c ?? C.text }}>{v}</div>
+              <div key={k} className="tint-hover glass rounded-2xl p-4" style={{ ['--fill' as string]: color, border: `1px solid ${C.border}` }}>
+                <div className="text-xs font-bold mb-1" style={{ color: C.muted }}>{k}</div>
+                <div className="text-xl font-bold" style={{ color: c ?? C.text }}>{v}</div>
               </div>
             ))}
           </div>

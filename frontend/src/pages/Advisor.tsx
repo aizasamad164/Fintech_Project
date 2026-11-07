@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { C, DISPLAY } from '../theme/tokens'
+import { C } from '../theme/tokens'
+import PageHeader from '../components/ui/PageHeader'
 import { sendChat } from '../services/chatService'
 import { listPortfolios } from '../services/trackingService'
 import type { ChatMessage, Portfolio, SavedPortfolio } from '../types/portfolio'
@@ -83,17 +84,15 @@ export default function Advisor({ dashboard, savedPortfolioId, onSavedPortfolioC
   }
 
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-3xl mx-auto flex flex-col" style={{ minHeight: 'calc(100vh - 4rem)' }}>
-      <div className="mb-4">
-        <h2 className="text-2xl mb-1" style={{ fontFamily: DISPLAY, color: C.text }}>Advisor</h2>
-        <p className="text-sm" style={{ color: C.muted }}>Ask anything about your portfolio, a stock, or an investing idea. Answers are educational, not advice.</p>
-      </div>
+    <div className="px-4 sm:px-8 py-8 max-w-4xl mx-auto flex flex-col" style={{ minHeight: 'calc(100vh - 9rem)' }}>
+      <PageHeader title="Advisor" subtitle="Ask anything about your portfolio, a stock, or an investing idea. Answers are educational, not advice." />
 
       {/* What the advisor can see */}
-      <div className="rounded-xl p-3 mb-4 flex flex-wrap items-center gap-2 text-xs" style={{ backgroundColor: C.surface, border: `1px solid ${C.border}` }}>
-        <span style={{ color: C.muted }}>Talking about:</span>
+      <div className="glass rounded-2xl p-4 mb-6 flex flex-wrap items-center gap-3" style={{ border: `1px solid ${C.border}` }}>
+        <span className="text-base font-bold" style={{ color: C.text2 }}>Talking about:</span>
         <select value={savedPortfolioId ?? ''} onChange={e => onSavedPortfolioChange(e.target.value || null)}
-          className="rounded-lg px-2 py-1.5 outline-none text-xs" style={{ backgroundColor: C.canvas, color: C.text, border: `1px solid ${C.border}` }}
+          className="flex-1 min-w-[220px] rounded-xl px-3 py-2.5 outline-none text-base font-semibold"
+          style={{ backgroundColor: C.canvas, color: C.text, border: `2px solid ${C.border}` }}
           aria-label="Portfolio the advisor should use">
           <option value="">{dashboard ? `Portfolio on screen (${dashboard.stocks.map(s => s.ticker).join(', ')})` : 'No portfolio'}</option>
           {saved.map(p => <option key={p.id} value={p.id}>Saved: {p.portfolio_name}</option>)}
@@ -101,28 +100,28 @@ export default function Advisor({ dashboard, savedPortfolioId, onSavedPortfolioC
       </div>
 
       {/* Conversation */}
-      <div className="flex-1 space-y-4 mb-4" aria-live="polite">
+      <div className="flex-1 space-y-4 mb-6" aria-live="polite">
         {messages.length === 0 && (
-          <div className="rounded-2xl p-5 fade-up" style={{ backgroundColor: C.card, borderLeft: `3px solid ${C.pink}` }}>
-            <div className="text-sm font-semibold mb-2" style={{ color: C.text }}>Try asking</div>
-            <div className="flex flex-wrap gap-2">
-              {suggestions.map(s => (
-                <button key={s} onClick={() => send(s)} className="pressable text-left text-xs px-3 py-2 rounded-full"
-                  style={{ color: C.text2, border: `1px solid ${C.border}`, backgroundColor: C.surface }}>{s}</button>
+          <div className="glass rounded-3xl p-6 fade-up" style={{ border: `1px solid ${C.border}`, borderLeft: `4px solid ${C.pink}` }}>
+            <div className="text-lg font-bold mb-3" style={{ color: C.text }}>Try asking</div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {suggestions.map((s, i) => (
+                <button key={s} onClick={() => send(s)} className="fill-hover glass text-left text-base font-bold px-4 py-4 rounded-2xl"
+                  style={{ ['--fill' as string]: [C.pink, C.cyan, C.teal][i % 3], color: C.text, border: `2px solid ${C.border}` }}>{s}</button>
               ))}
             </div>
           </div>
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} fade-up`}>
-            <div className="max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed"
+            <div className={`max-w-[88%] rounded-3xl px-5 py-4 text-base font-medium leading-relaxed ${m.role === 'assistant' ? 'glass' : ''}`}
               style={m.role === 'user'
-                ? { backgroundColor: `${C.cyan}1f`, color: C.text, border: `1px solid ${C.cyan}40` }
-                : { backgroundColor: C.surface, color: C.text2, border: `1px solid ${C.border}` }}>
+                ? { backgroundColor: C.cyan, color: C.canvas, fontWeight: 700 }
+                : { color: C.text2, border: `1px solid ${C.border}` }}>
               {m.role === 'assistant' && m.tools && m.tools.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-2">
+                <div className="flex flex-wrap gap-1.5 mb-3">
                   {[...new Set(m.tools)].map(t => (
-                    <span key={t} className="text-[10px] px-2 py-0.5 rounded-full" style={{ color: C.violet, backgroundColor: `${C.violet}18` }}>
+                    <span key={t} className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ color: C.violet, backgroundColor: `${C.violet}22`, border: `1px solid ${C.violet}55` }}>
                       {TOOL_LABELS[t] ?? t}
                     </span>
                   ))}
@@ -133,8 +132,9 @@ export default function Advisor({ dashboard, savedPortfolioId, onSavedPortfolioC
           </div>
         ))}
         {busy && (
-          <div className="flex gap-1 px-2" aria-label="Advisor is thinking">
-            {[0, 1, 2].map(i => <span key={i} className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: C.pink, animationDelay: `${i * 0.2}s` }} />)}
+          <div className="flex items-center gap-2 px-2" aria-label="Advisor is thinking">
+            {[0, 1, 2].map(i => <span key={i} className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: C.pink, animationDelay: `${i * 0.2}s` }} />)}
+            <span className="text-sm font-bold ml-1" style={{ color: C.muted }}>Thinking…</span>
           </div>
         )}
         <div ref={endRef} />
@@ -142,12 +142,12 @@ export default function Advisor({ dashboard, savedPortfolioId, onSavedPortfolioC
 
       {/* Composer */}
       <form onSubmit={e => { e.preventDefault(); send(input) }}
-        className="sticky bottom-20 lg:bottom-4 flex gap-2 rounded-2xl p-2"
-        style={{ backgroundColor: C.surface, border: `1px solid ${C.border}`, boxShadow: '0 12px 30px -12px rgba(0,0,0,0.6)' }}>
+        className="glass sticky bottom-4 flex gap-2 rounded-3xl p-2"
+        style={{ border: `2px solid ${C.border}`, boxShadow: '0 16px 40px -14px rgba(0,0,0,0.7)' }}>
         <input value={input} onChange={e => setInput(e.target.value)} placeholder="Ask the advisor…" aria-label="Message"
-          maxLength={2000} className="flex-1 bg-transparent px-3 py-2 text-sm outline-none" style={{ color: C.text }} />
-        <button type="submit" disabled={busy || !input.trim()} className="pressable px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-40"
-          style={{ backgroundColor: C.pink, color: C.canvas }}>Send</button>
+          maxLength={2000} className="flex-1 bg-transparent px-4 py-3 text-base font-semibold outline-none" style={{ color: C.text }} />
+        <button type="submit" disabled={busy || !input.trim()} className="cta px-6 py-3 rounded-2xl text-base font-bold disabled:opacity-40"
+          style={{ backgroundColor: C.pink, color: C.canvas, ['--glow' as string]: C.pink }}>Send</button>
       </form>
     </div>
   )
