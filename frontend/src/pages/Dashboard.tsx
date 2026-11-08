@@ -12,10 +12,11 @@ import RiskGauge from '../components/charts/RiskGauge'
 import HistChart from '../components/charts/HistChart'
 import StockDetail from './StockDetail'
 import { savePortfolio } from '../services/trackingService'
-import type { DashVariant, Portfolio, Risk, Sector } from '../types/portfolio'
+import { DEFAULT_OPTIONS, type DashVariant, type Portfolio, type PortfolioOptions, type Risk, type Sector } from '../types/portfolio'
 
 interface Props {
   budget: number; risk: Risk; sector: Sector; variant: DashVariant
+  opts?: PortfolioOptions; onOpts?: (o: PortfolioOptions) => void   // model scope + Shariah filter
   onVariant: (v: DashVariant) => void
   onRisk: (r: Risk) => void; onSector: (s: Sector) => void; onBudget: (b: number) => void
   onPortfolio?: (p: Portfolio | null) => void   // lets the Advisor tab see what's on screen
@@ -29,8 +30,8 @@ type Detail = { ticker: string; origin: string; phase: 'open' | 'closing'; retur
 
 const tile = { border: `1px solid ${C.border}` }
 
-export default function Dashboard({ budget, risk, sector, variant, onVariant, onRisk, onSector, onBudget, onPortfolio, onOpenTracking, onAskAdvisor, isPro = false, onLocked = () => {} }: Props) {
-  const { portfolio, loading, error } = useGeneratedPortfolio(budget, risk, sector)
+export default function Dashboard({ budget, risk, sector, opts = DEFAULT_OPTIONS, onOpts = () => {}, variant, onVariant, onRisk, onSector, onBudget, onPortfolio, onOpenTracking, onAskAdvisor, isPro = false, onLocked = () => {} }: Props) {
+  const { portfolio, loading, error } = useGeneratedPortfolio(budget, risk, sector, opts)
   const [animKey, setAnimKey] = useState(0)
   const [adjustOpen, setAdjustOpen] = useState(false)
   const [detail, setDetail] = useState<Detail | null>(null)
@@ -122,6 +123,8 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
       <TagChip label={fmt(budget)} color={C.violet} />
       <TagChip label={risk} color={riskColor(risk)} />
       <TagChip label={sector} color={C.cyan} />
+      {opts.model === 'global' && <TagChip label="Global model" color={C.violet} />}
+      {opts.shariah && <TagChip label="Shariah-compliant" color={C.teal} />}
       {variant === 'stale' && <TagChip label="Saved data" color={C.pink} />}
       {portfolio?.asOf && <span className="text-xs font-semibold ml-1" style={{ color: C.muted }}>Prices as of {portfolio.asOf}</span>}
     </div>
@@ -130,8 +133,20 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
   const extras = (
     <>
       {save.state === 'error' && <div className="mt-3 text-sm font-bold" style={{ color: C.pink }} role="alert">Couldn't save: {save.msg}</div>}
-      {adjustOpen && <AdjustPanel risk={risk} sector={sector} budget={budget} isPro={isPro} onLocked={onLocked}
+      {adjustOpen && <AdjustPanel risk={risk} sector={sector} budget={budget} isPro={isPro} opts={opts} onOpts={onOpts} onLocked={onLocked}
         onRisk={onRisk} onSector={onSector} onBudget={onBudget} onClose={() => setAdjustOpen(false)} />}
+      {portfolio?.shariah && (
+        <div className="glass mt-4 px-5 py-4 rounded-2xl flex flex-wrap items-start gap-3 fade-in" style={{ border: `1px solid ${C.teal}66` }}>
+          <span className="text-[11px] font-semibold uppercase px-2 py-1 rounded" style={{ color: C.canvas, backgroundColor: C.teal, letterSpacing: '0.1em' }}>Shariah screened</span>
+          <p className="flex-1 min-w-[240px] text-sm font-medium leading-relaxed" style={{ color: C.text2 }}>
+            Only Shariah-compliant stocks were considered{portfolio.shariah.asOf ? ` (screening as of ${portfolio.shariah.asOf})` : ''}.{' '}
+            {portfolio.shariah.excludedCount} stock{portfolio.shariah.excludedCount === 1 ? ' was' : 's were'} left out. <span style={{ color: C.muted }}>{portfolio.shariah.disclaimer}</span>
+          </p>
+        </div>
+      )}
+      {portfolio?.notes?.filter(n => !n.startsWith('Shariah filter removed')).map(n => (
+        <div key={n} className="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold fade-in" style={{ backgroundColor: `${C.pink}18`, border: `1px solid ${C.pink}55`, color: C.text2 }}>{n}</div>
+      ))}
       {variant === 'stale' && (
         <div className="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold fade-in" style={{ backgroundColor: `${C.pink}18`, border: `1px solid ${C.pink}55`, color: C.text2 }}>
           Last updated Aug 30, 2026: showing saved data. Live prices may differ.
@@ -241,7 +256,7 @@ export default function Dashboard({ budget, risk, sector, variant, onVariant, on
         </div>
         <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
           {portfolio.stocks.map((s, i) => (
-            <StockCard key={s.ticker} stock={s} budget={budget} index={i} onOpen={el => openDetail(s.ticker, el)} />
+            <StockCard key={s.ticker} stock={s} budget={budget} index={i} shariah={opts.shariah} onOpen={el => openDetail(s.ticker, el)} />
           ))}
         </div>
 

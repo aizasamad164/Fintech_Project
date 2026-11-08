@@ -4,10 +4,11 @@ import { SECTOR_OPTS, isProSector } from '../../data/options'
 import OnboardShell from '../../components/layout/OnboardShell'
 import StepBar from '../../components/layout/StepBar'
 import { BigCta, GhostBtn } from '../../components/ui/Buttons'
-import type { Sector } from '../../types/portfolio'
+import ModelOptions from '../../components/portfolio/ModelOptions'
+import { DEFAULT_OPTIONS, type PortfolioOptions, type Sector } from '../../types/portfolio'
 
 interface Props {
-  onNext: (s: Sector) => void
+  onNext: (s: Sector, o: PortfolioOptions) => void
   onBack: () => void
   isPro: boolean
   onLocked: () => void   // opens the Pro paywall
@@ -19,6 +20,7 @@ const Lock = () => (
 
 export default function SectorStep({ onNext, onBack, isPro, onLocked }: Props) {
   const [sel, setSel] = useState<Sector | null>(null)
+  const [opts, setOpts] = useState<PortfolioOptions>(DEFAULT_OPTIONS)
   const selColor = SECTOR_OPTS.find(o => o.v === sel)?.color ?? C.cyan
   return (
     <OnboardShell>
@@ -62,9 +64,11 @@ export default function SectorStep({ onNext, onBack, isPro, onLocked }: Props) {
         })}
       </div>
 
+      <div className="mt-6 fade-up d7"><ModelOptions value={opts} onChange={setOpts} /></div>
+
       <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-3 mt-9 fade-up d7">
         <GhostBtn onClick={onBack}>Back</GhostBtn>
-        <BigCta onClick={() => sel && onNext(sel)} disabled={!sel} color={selColor}>
+        <BigCta onClick={() => sel && onNext(sel, opts)} disabled={!sel} color={selColor}>
           {sel ? 'Generate my portfolio' : 'Choose a sector'}
         </BigCta>
       </div>

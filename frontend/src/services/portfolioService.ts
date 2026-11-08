@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { generateMockPortfolio } from './mockPortfolio'
 import { api, USE_MOCK } from './api'
-import type { Portfolio, PortfolioStock, Risk, Sector } from '../types/portfolio'
+import { DEFAULT_OPTIONS, type Portfolio, type PortfolioOptions, type PortfolioStock, type Risk, type Sector } from '../types/portfolio'
 
 // Frontend labels ↔ backend sector keys
 export const SECTOR_TO_API: Record<Sector, string> = {
@@ -35,6 +35,8 @@ interface ApiRebalance {
   allocations: ApiAllocation[]
   explanation: string[]
   explanation_source: 'llm' | 'fallback' | 'none'
+  notes?: string[]
+  shariah?: { as_of: string | null; excluded_count: number; disclaimer: string | null }
 }
 
 // Recent results, so the request started during the loading animation is reused
@@ -42,30 +44,30 @@ interface ApiRebalance {
 const CACHE_MS = 5 * 60_000
 const cache = new Map<string, { at: number; promise: Promise<Portfolio> }>()
 
-export function getPortfolio(budget: number, risk: Risk, sector: Sector): Promise<Portfolio> {
-  const key = `${budget}|${risk}|${sector}`
+export function getPortfolio(budget: number, risk: Risk, sector: Sector, opts: PortfolioOptions = DEFAULT_OPTIONS): Promise<Portfolio> {
+  const key = `${budget}|${risk}|${sector}|${opts.model}|${opts.shariah}`
   const hit = cache.get(key)
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.promise
-  const promise = loadPortfolio(budget, risk, sector)
+  const promise = loadPortfolio(budget, risk, sector, opts)
   cache.set(key, { at: Date.now(), promise })
   promise.catch(() => cache.delete(key)) // never cache failures
   return promise
 }
 
 /** Fire-and-forget: start building while the Processing screen animates. */
-export function prefetchPortfolio(budget: number, risk: Risk, sector: Sector): void {
-  getPortfolio(budget, risk, sector).catch(() => { /* the dashboard shows the error */ })
+export function prefetchPortfolio(budget: number, risk: Risk, sector: Sector, opts: PortfolioOptions = DEFAULT_OPTIONS): void {
+  getPortfolio(budget, risk, sector, opts).catch(() => { /* the dashboard shows the error */ })
 }
 
-async function loadPortfolio(budget: number, risk: Risk, sector: Sector): Promise<Portfolio> {
+async function loadPortfolio(budget: number, risk: Risk, sector: Sector, opts: PortfolioOptions): Promise<Portfolio> {
   if (USE_MOCK) {
     await new Promise(r => setTimeout(r, 150)) // imitate network delay
     return { ...generateMockPortfolio(budget, risk, sector), budget, riskStrategy: risk, sector, explanationSource: 'mock' }
   }
-  return fetchFromBackend(budget, risk, sector)
+  return fetchFromBackend(budget, risk, sector, opts)
 }
 
-async function fetchFromBackend(budget: number, risk: Risk, sector: Sector): Promise<Portfolio> {
+async function fetchFromBackend(budget: number, risk: Risk, sector: Sector, opts: PortfolioOptions): Promise<Portfolio> {
   const data = await api<ApiRebalance>('/api/portfolio/rebalance', {
     method: 'POST',
     body: JSON.stringify({
@@ -73,6 +75,8 @@ async function fetchFromBackend(budget: number, risk: Risk, sector: Sector): Pro
       target_sector: SECTOR_TO_API[sector],
       risk_strategy: risk.toLowerCase(),
       include_explanation: true,
+      model_scope: opts.model,
+      shariah_only: opts.shariah,
     }),
   })
 
@@ -106,5 +110,10 @@ async function fetchFromBackend(budget: number, risk: Risk, sector: Sector): Pro
     sector,
     asOf: data.as_of,
     explanationSource: data.explanation_source,
+    options: opts,
+    notes: data.notes ?? [],
+    shariah: data.shariah
+      ? { asOf: data.shariah.as_of, excludedCount: data.shariah.excluded_count, disclaimer: data.shariah.disclaimer }
+      : undefined,
   }
 }

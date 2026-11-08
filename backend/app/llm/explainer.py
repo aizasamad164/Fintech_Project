@@ -24,6 +24,7 @@ no "you should buy". Bullet 1: the overall idea of this mix for the chosen
 strategy. Bullet 2: why the largest holding gets the biggest share. Bullet 3:
 what the past-12-months number means, and that the past doesn't predict the future.
 If headlines are given, you may mention one briefly as context, not as a cause.
+If "screening" is given, mention it in bullet 1 in one short phrase (say "screened with third-party tools", never claim a religious ruling).
 Reply ONLY with JSON: {"bullets": ["...", "...", "..."]}"""
 
 
@@ -45,6 +46,7 @@ def _facts(result: Dict[str, Any], headlines: Dict[str, List[str]]) -> Dict[str,
             for a in result["allocations"]
         ],
         "recent_headlines": headlines,
+        **({"screening": "Shariah-compliant stocks only"} if result.get("shariah_only") else {}),
     }
 
 

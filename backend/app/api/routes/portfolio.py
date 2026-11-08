@@ -17,11 +17,14 @@ from typing import List, Literal, Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
+from app.compliance import shariah
 from app.data import portfolio_store
 from app.data.news import get_ticker_news
 from app.llm.explainer import explain_portfolio
 from app.optimization.portfolio_service import run_portfolio_rebalancing
 from app.optimization.portfolio_tracker import calculate_portfolio_performance
+from app.api.routes.recommend import recommend
+from app.schemas.portfolio import RecommendRequest, RecommendResponse
 
 router = APIRouter()
 DISCLAIMER = ("This output is an educational simulation only and does not "
@@ -42,6 +45,9 @@ class RebalanceRequest(BaseModel):
     risk_strategy: Literal["conservative", "balanced", "aggressive"] = "balanced"
     top_n: Optional[int] = Field(None, ge=3, le=5)
     include_explanation: bool = True
+    # Optional extras (defaults keep the original behaviour)
+    model_scope: Literal["sector", "global"] = "sector"   # per-sector models | cross-sector clustering model
+    shariah_only: bool = False                            # restrict to Shariah-compliant stocks
 
 
 @router.post("/rebalance")
@@ -51,6 +57,8 @@ async def rebalance(req: RebalanceRequest):
         target_sector=req.target_sector,
         risk_strategy=req.risk_strategy,
         top_n=req.top_n,
+        model_scope=req.model_scope,
+        shariah_only=req.shariah_only,
     )
     if result.get("status") != "success":
         raise HTTPException(status_code=503, detail=result.get("message", "Could not build portfolio"))
@@ -69,6 +77,13 @@ async def rebalance(req: RebalanceRequest):
 
     result["disclaimer"] = DISCLAIMER
     return result
+
+
+# ---------------------------------------------------------------- shariah info
+@router.get("/shariah/universe")
+async def shariah_universe():
+    """Which stocks pass the Shariah screen, when it was screened, and the rule/disclaimer to show users."""
+    return shariah.info()
 
 
 # ---------------------------------------------------------------- save
@@ -134,3 +149,10 @@ async def delete(portfolio_id: str, user_id: str = Query(...)):
     if not await asyncio.to_thread(portfolio_store.delete_portfolio, portfolio_id, uid):
         raise HTTPException(status_code=404, detail="Portfolio not found")
     return {"status": "success"}
+
+
+
+# ---------------------------------------------------------------- generate (used by frontend)
+@router.post("/generate", response_model=RecommendResponse)
+async def generate_portfolio(request: RecommendRequest) -> dict:
+    return await recommend(request)

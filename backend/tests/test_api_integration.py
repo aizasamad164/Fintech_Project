@@ -33,8 +33,10 @@ def client(tmp_path_factory):
             for i, t in enumerate(tickers)}
     price_history.seed_cache(hist)
     price_history.seed_cache({t: df.iloc[-5:] for t, df in hist.items()}, period="5d")
-    # keep test saves out of the real local store
+    # keep test saves out of the real local store, and use the local file even
+    # though conftest.py sets (fake) Supabase credentials
     portfolio_store.LOCAL_FILE = tmp_path_factory.mktemp("store") / "portfolios.json"
+    portfolio_store._supabase_configured = lambda: False
     from app.main import app
     return TestClient(app)
 

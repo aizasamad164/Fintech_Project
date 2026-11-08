@@ -2,7 +2,7 @@
 // and holds the shared state (budget, risk, sector, pro status).
 // All UI lives in pages/ and components/.
 import { useCallback, useState, type ReactNode } from 'react'
-import type { DashVariant, Portfolio, Risk, Screen, Sector, Tab } from './types/portfolio'
+import { DEFAULT_OPTIONS, type DashVariant, type Portfolio, type PortfolioOptions, type Risk, type Screen, type Sector, type Tab } from './types/portfolio'
 import { LESSONS } from './data/lessons'
 import { prefetchPortfolio } from './services/portfolioService'
 
@@ -19,6 +19,7 @@ import LessonDetail from './pages/learn/LessonDetail'
 import Account from './pages/Account'
 import Tracking from './pages/Tracking'
 import Advisor from './pages/Advisor'
+import Shariah from './pages/Shariah'
 import Paywall from './pages/pro/Paywall'
 import Checkout from './pages/pro/Checkout'
 import ProSuccess from './pages/pro/ProSuccess'
@@ -29,6 +30,7 @@ export default function App() {
   const [budget, setBudget] = useState(5000)
   const [risk, setRisk] = useState<Risk>('Balanced')
   const [sector, setSector] = useState<Sector>('Technology')
+  const [opts, setOpts] = useState<PortfolioOptions>(DEFAULT_OPTIONS)   // model scope + Shariah filter
   const [dashVariant, setDashVariant] = useState<DashVariant>('success')
   const [isPro, setIsPro] = useState(false)
   const [lessonId, setLessonId] = useState<number | null>(null)
@@ -52,7 +54,7 @@ export default function App() {
   if (screen === 'budget') return wrap(<BudgetStep onNext={b => { setBudget(b); go('risk') }} />)
   if (screen === 'risk') return wrap(<RiskStep onNext={r => { setRisk(r); go('sector') }} onBack={() => go('budget', true)} />)
   if (screen === 'sector') return wrap(<SectorStep isPro={isPro} onLocked={() => openPaywall('sector')}
-    onNext={s => { setSector(s); prefetchPortfolio(budget, risk, s); go('processing') }} onBack={() => go('risk', true)} />)
+    onNext={(s, o) => { setSector(s); setOpts(o); prefetchPortfolio(budget, risk, s, o); go('processing') }} onBack={() => go('risk', true)} />)
   if (screen === 'processing') return wrap(<Processing onDone={() => go('nav')} />)
 
   // Pro flow (full-screen, outside the nav)
@@ -64,7 +66,7 @@ export default function App() {
   return wrap(
     <NavShell tab={tab} setTab={setTab} isPro={isPro}>
       {tab === 'portfolio' && (
-        <Dashboard budget={budget} risk={risk} sector={sector} variant={dashVariant} isPro={isPro} onLocked={() => openPaywall('nav')}
+        <Dashboard budget={budget} risk={risk} sector={sector} opts={opts} onOpts={setOpts} variant={dashVariant} isPro={isPro} onLocked={() => openPaywall('nav')}
           onVariant={setDashVariant} onRisk={setRisk} onSector={setSector} onBudget={setBudget}
           onPortfolio={setDashPortfolio} onOpenTracking={() => setTab('tracking')}
           onAskAdvisor={() => { setAdvisorPortfolioId(null); setTab('advisor') }} />
@@ -72,6 +74,8 @@ export default function App() {
       {tab === 'insights' && <Insights isPro={isPro} onUnlock={() => openPaywall('nav')} onViewPortfolio={handleViewPortfolio} />}
       {tab === 'tracking' && <Tracking onBuild={() => setTab('portfolio')}
         onAskAdvisor={id => { setAdvisorPortfolioId(id); setTab('advisor') }} />}
+      {tab === 'shariah' && <Shariah enabled={opts.shariah} onToggle={on => setOpts({ ...opts, shariah: on })}
+        onBuild={() => { setOpts({ ...opts, shariah: true }); setTab('portfolio') }} />}
       {tab === 'advisor' && <Advisor dashboard={dashPortfolio} savedPortfolioId={advisorPortfolioId}
         onSavedPortfolioChange={setAdvisorPortfolioId} />}
       {tab === 'learn' && (lessonId !== null

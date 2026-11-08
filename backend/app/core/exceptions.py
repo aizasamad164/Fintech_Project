@@ -12,3 +12,8 @@ class MarketDataUnavailableError(Exception):
 class LLMServiceError(Exception):
     """Raised when the Groq API call fails; caller should use app.llm.fallback."""
     pass
+
+
+class InsufficientDataError(Exception):
+    """Raised when a recommendation can't be built because stocks or price history are missing."""
+    pass

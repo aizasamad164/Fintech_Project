@@ -7,6 +7,7 @@ interface Props {
   stock: PortfolioStock
   budget: number
   index: number
+  shariah?: boolean   // portfolio was built from Shariah-screened stocks only
   onOpen: (el: HTMLElement) => void
 }
 
@@ -21,7 +22,7 @@ const OUTLOOK: Record<string, { word: string; tone: string }> = {
  * how it did last year, and what kind of risk it is. Everything else lives
  * on the detail screen. Hover/focus fills the card with its strategy colour.
  */
-export default function StockCard({ stock, budget, index, onOpen }: Props) {
+export default function StockCard({ stock, budget, index, onOpen, shariah = false }: Props) {
   const color = riskColor(stock.riskClass)
   const up = stock.yearReturn >= 0
   const outlook = stock.mlSignal ? OUTLOOK[stock.mlSignal] : null
@@ -39,8 +40,11 @@ export default function StockCard({ stock, budget, index, onOpen }: Props) {
           <div className="text-sm font-semibold truncate" style={{ color: C.muted }}>{stock.name}</div>
         </div>
       </div>
-      <span className="on-fill-bg self-start text-xs font-bold px-2.5 py-1 rounded-full mb-4"
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        <span className="on-fill-bg self-start text-xs font-bold px-2.5 py-1 rounded-full"
         style={{ color, backgroundColor: `${color}1f`, border: `1px solid ${color}55` }}>{stock.riskClass} pick</span>
+        {shariah && <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ color: C.teal, backgroundColor: `${C.teal}1a`, border: `1px solid ${C.teal}55` }}>Shariah ✓</span>}
+      </div>
 
       {/* The money */}
       <div className="text-3xl leading-none" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.025em', color: C.text }}>{stock.allocation}%</div>

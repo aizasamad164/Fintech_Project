@@ -18,7 +18,7 @@ optimization, and LLM-generated plain-English explanations (Groq).
 ## Getting Started
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.12+
 - Node.js 20+
 - A Supabase project (free tier is fine for MVP)
 - API keys: Groq, Finnhub (or Polygon)
@@ -76,7 +76,7 @@ docker-compose up
 |---|---|
 | Third-party API keys (Groq, Finnhub) | `backend/.env` (git-ignored) — never in frontend |
 | Your own REST API | `backend/app/api/routes/` |
-| Live market data | Fetched on demand, held in in-memory cache (`backend/app/data/cache.py`), with a Supabase fallback table (`market_data_cache`) |
+| Live market data | Fetched on demand, held in in-memory cache (`backend/app/data/cache.py`), with a Supabase fallback (saved candles in `ohlcv_daily`) |
 | Trained ML models | `backend/app/signals/models/*.pkl` (committed or pulled from object storage at startup) |
 | Bulk training datasets | External storage, **not** committed to git |
 | Frontend public config (Supabase anon key, API base URL) | `frontend/.env` (git-ignored, but contains only public-safe values) |

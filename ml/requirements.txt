@@ -1,0 +1,16 @@
+# Training-side dependencies for the scripts in ml/ (the API does NOT need these at runtime).
+# Install into a venv separate from, or on top of, backend/requirements.txt:
+#     pip install -r ml/requirements.txt
+pandas>=2.2.0
+numpy>=1.26.0
+ta>=0.11.0
+yfinance>=0.2.43
+scikit-learn>=1.5.0
+lightgbm>=4.5.0
+xgboost>=2.1.0
+joblib>=1.4.2
+
+# LSTM candidate in ml/global_clustering. CPU-only is enough (NFR-1.2). The default
+# Linux wheel can pull a much larger CUDA build, so on Linux/CI prefer:
+#     pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.2.0

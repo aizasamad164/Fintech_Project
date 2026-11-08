@@ -6,9 +6,10 @@ from typing import Any, Dict, List, Optional
 
 from app.data.market_data import get_latest_ticker_price
 from app.data.news import get_ticker_news
+from app.compliance import shariah
 from app.optimization.portfolio_service import run_portfolio_rebalancing
 from app.optimization.portfolio_tracker import calculate_portfolio_performance
-from app.signals.models.model_loader import predict_ticker_signal
+from app.signals.signal_router import get_signal
 
 AGENT_TOOLS: List[Dict[str, Any]] = [
     {
@@ -28,6 +29,10 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
                     "risk_strategy": {"type": "string", "enum": ["conservative", "balanced", "aggressive"],
                                       "description": "How much price swing the user accepts (default balanced)"},
                     "top_n": {"type": "integer", "description": "Number of holdings, 3 to 5 (default depends on strategy)"},
+                    "model_scope": {"type": "string", "enum": ["sector", "global"],
+                                    "description": "'sector' (default) = the specialised per-sector models; 'global' = the cross-sector clustering model that scores all stocks together"},
+                    "shariah_only": {"type": "boolean",
+                                     "description": "True ONLY if the user asks for a Halal / Islamic / Shariah-compliant portfolio. Restricts the choice to screened compliant stocks."},
                 },
                 "required": ["portfolio_value"],
             },
@@ -58,6 +63,10 @@ AGENT_TOOLS: List[Dict[str, Any]] = [
                 "properties": {
                     "ticker": {"type": "string", "description": "Stock symbol (e.g. NVDA, AAPL, LLY)"},
                     "sector": {"type": "string", "description": "Technology, Healthcare, Pharmaceuticals, Renewable_Energy, or General"},
+                    "model_scope": {"type": "string", "enum": ["sector", "global"],
+                                    "description": "'sector' (default) or 'global' (cross-sector clustering model)"},
+                    "risk_strategy": {"type": "string", "enum": ["conservative", "balanced", "aggressive"],
+                                      "description": "Only used with model_scope='global' (default balanced)"},
                 },
                 "required": ["ticker"],
             },
@@ -106,6 +115,10 @@ def _slim_rebalance(result: Dict[str, Any]) -> Dict[str, Any]:
         "message": result.get("message"),
         "risk_strategy": result.get("risk_strategy"),
         "target_sector": result.get("target_sector"),
+        "model_scope": result.get("model_scope"),
+        "shariah_only": result.get("shariah_only"),
+        "shariah": result.get("shariah"),
+        "notes": result.get("notes"),
         "summary": result.get("summary"),
         "allocations": [{k: a.get(k) for k in keep} for a in result.get("allocations", [])],
     }
@@ -131,6 +144,8 @@ async def execute_tool_call(tool_name: str, raw_arguments: Any,
                 risk_strategy=args.get("risk_strategy", "balanced"),
                 top_n=int(args["top_n"]) if args.get("top_n") else None,
                 allow_fractional=True,
+                model_scope=args.get("model_scope") or "sector",
+                shariah_only=bool(args.get("shariah_only", False)),
             )
             return _slim_rebalance(result)
 
@@ -141,8 +156,13 @@ async def execute_tool_call(tool_name: str, raw_arguments: Any,
             return await asyncio.to_thread(calculate_portfolio_performance, positions)
 
         if tool_name == "get_ml_prediction":
-            return await asyncio.to_thread(
-                predict_ticker_signal, str(args.get("ticker", "")).strip(), str(args.get("sector") or "General").strip())
+            ticker = str(args.get("ticker", "")).strip()
+            signal = await asyncio.to_thread(
+                get_signal, ticker, str(args.get("sector") or "General").strip(),
+                args.get("model_scope") or "sector", args.get("risk_strategy") or "balanced")
+            # Tell the model (and user) the stock's Shariah screening result alongside the signal
+            signal["shariah_status"] = shariah.status(ticker) or "not_screened"
+            return signal
 
         if tool_name == "get_market_news":
             return await asyncio.to_thread(

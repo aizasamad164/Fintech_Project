@@ -1,0 +1,1 @@
+alter type public.sector_type add value if not exists 'pharmaceuticals';

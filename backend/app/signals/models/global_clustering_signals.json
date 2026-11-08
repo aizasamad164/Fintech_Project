@@ -1,0 +1,755 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-20T20:01:38+00:00",
+  "as_of": "2026-10-20",
+  "horizon_days": 5,
+  "k_clusters": 2,
+  "n_tickers": 25,
+  "disclaimer": "Educational simulation output, not regulated financial advice.",
+  "risk_levels": {
+    "conservative": {
+      "target_return_5d": 0.01,
+      "clusters": {
+        "0": {
+          "model": "XGBoost",
+          "cutoff": 0.345659,
+          "val_auc": 0.6023,
+          "test_auc_roc": 0.4224,
+          "members": [
+            "AVGO",
+            "NVDA",
+            "ORCL"
+          ]
+        },
+        "1": {
+          "model": "XGBoost",
+          "cutoff": 0.280593,
+          "val_auc": 0.5667,
+          "test_auc_roc": 0.5478,
+          "members": [
+            "AAPL",
+            "ABT",
+            "ADBE",
+            "AMGN",
+            "AZN",
+            "BMY",
+            "CRM",
+            "DHR",
+            "ISRG",
+            "JNJ",
+            "LLY",
+            "MDT",
+            "MSFT",
+            "NVO",
+            "NVS",
+            "PFE",
+            "QCOM",
+            "REGN",
+            "SYK",
+            "TMO",
+            "TXN",
+            "UNH"
+          ]
+        }
+      },
+      "signals": {
+        "AAPL": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280561,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "ABT": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280633,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "ADBE": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280565,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "AMGN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280565,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "AVGO": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "XGBoost",
+          "bullish_probability": 0.345121,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "AZN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280561,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "BMY": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280593,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "CRM": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280561,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "DHR": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280586,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "ISRG": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280586,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "JNJ": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280593,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "LLY": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280565,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "MDT": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280586,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "MSFT": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280586,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "NVDA": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "XGBoost",
+          "bullish_probability": 0.345285,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "NVO": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280587,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "NVS": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280561,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "ORCL": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "XGBoost",
+          "bullish_probability": 0.345108,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "PFE": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280586,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "QCOM": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280593,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "REGN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280565,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "SYK": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280565,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "TMO": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280586,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "TXN": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280633,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "UNH": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.280565,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        }
+      }
+    },
+    "balanced": {
+      "target_return_5d": 0.015,
+      "clusters": {
+        "0": {
+          "model": "LSTM",
+          "cutoff": 0.305945,
+          "val_auc": 0.6047,
+          "test_auc_roc": 0.4318,
+          "members": [
+            "AVGO",
+            "NVDA",
+            "ORCL"
+          ]
+        },
+        "1": {
+          "model": "XGBoost",
+          "cutoff": 0.215867,
+          "val_auc": 0.6729,
+          "test_auc_roc": 0.556,
+          "members": [
+            "AAPL",
+            "ABT",
+            "ADBE",
+            "AMGN",
+            "AZN",
+            "BMY",
+            "CRM",
+            "DHR",
+            "ISRG",
+            "JNJ",
+            "LLY",
+            "MDT",
+            "MSFT",
+            "NVO",
+            "NVS",
+            "PFE",
+            "QCOM",
+            "REGN",
+            "SYK",
+            "TMO",
+            "TXN",
+            "UNH"
+          ]
+        }
+      },
+      "signals": {
+        "AAPL": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.21582,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "ABT": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215783,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "ADBE": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215879,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "AMGN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215758,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "AVGO": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "LSTM",
+          "bullish_probability": 0.294937,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "AZN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215758,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "BMY": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215783,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "CRM": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.21582,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "DHR": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215739,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "ISRG": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215787,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "JNJ": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215783,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "LLY": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215787,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "MDT": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215758,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "MSFT": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.21582,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "NVDA": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "LSTM",
+          "bullish_probability": 0.288621,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "NVO": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215746,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "NVS": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215758,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "ORCL": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "LSTM",
+          "bullish_probability": 0.303677,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "PFE": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215758,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "QCOM": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215916,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "REGN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215758,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "SYK": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215758,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "TMO": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215787,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "TXN": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215916,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "UNH": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "XGBoost",
+          "bullish_probability": 0.215787,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        }
+      }
+    },
+    "aggressive": {
+      "target_return_5d": 0.025,
+      "clusters": {
+        "0": {
+          "model": "Ensemble",
+          "cutoff": 0.20459,
+          "val_auc": 0.7268,
+          "test_auc_roc": 0.5673,
+          "members": [
+            "AVGO",
+            "NVDA",
+            "ORCL"
+          ]
+        },
+        "1": {
+          "model": "LSTM",
+          "cutoff": 0.11737,
+          "val_auc": 0.6011,
+          "test_auc_roc": 0.4524,
+          "members": [
+            "AAPL",
+            "ABT",
+            "ADBE",
+            "AMGN",
+            "AZN",
+            "BMY",
+            "CRM",
+            "DHR",
+            "ISRG",
+            "JNJ",
+            "LLY",
+            "MDT",
+            "MSFT",
+            "NVO",
+            "NVS",
+            "PFE",
+            "QCOM",
+            "REGN",
+            "SYK",
+            "TMO",
+            "TXN",
+            "UNH"
+          ]
+        }
+      },
+      "signals": {
+        "AAPL": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.121768,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "ABT": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.118745,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "ADBE": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.111912,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "AMGN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.119921,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "AVGO": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "Ensemble",
+          "bullish_probability": 0.204284,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "AZN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.117806,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "BMY": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.112401,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "CRM": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.115648,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "DHR": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.119129,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "ISRG": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.120902,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "JNJ": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.113162,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "LLY": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.119075,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "MDT": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.118967,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "MSFT": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.119229,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "NVDA": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "Ensemble",
+          "bullish_probability": 0.197838,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "NVO": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.113912,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "NVS": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.121259,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "ORCL": {
+          "sector": "Technology",
+          "cluster": 0,
+          "model": "Ensemble",
+          "bullish_probability": 0.210194,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "PFE": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.122119,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "QCOM": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.104298,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "REGN": {
+          "sector": "Pharmaceuticals",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.11671,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "SYK": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.117219,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "TMO": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.11876,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        },
+        "TXN": {
+          "sector": "Technology",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.108739,
+          "signal": 0,
+          "as_of": "2026-10-20"
+        },
+        "UNH": {
+          "sector": "Healthcare",
+          "cluster": 1,
+          "model": "LSTM",
+          "bullish_probability": 0.12005,
+          "signal": 1,
+          "as_of": "2026-10-20"
+        }
+      }
+    }
+  }
+}

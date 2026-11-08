@@ -1,11 +1,13 @@
 import { C, riskColor } from '../../theme/tokens'
 import { fmt } from '../../utils/format'
 import { RISKS, SECTOR_OPTS, isProSector } from '../../data/options'
-import type { Risk, Sector } from '../../types/portfolio'
+import ModelOptions from './ModelOptions'
+import type { PortfolioOptions, Risk, Sector } from '../../types/portfolio'
 
 interface Props {
   risk: Risk; sector: Sector; budget: number
   isPro: boolean
+  opts: PortfolioOptions; onOpts: (o: PortfolioOptions) => void
   onRisk: (r: Risk) => void; onSector: (s: Sector) => void; onBudget: (b: number) => void
   onLocked: () => void
   onClose: () => void
@@ -15,7 +17,7 @@ const Label = ({ children }: { children: string }) => (
   <div className="text-sm font-semibold mb-2.5" style={{ color: C.text2 }}>{children}</div>
 )
 
-export default function AdjustPanel({ risk, sector, budget, isPro, onRisk, onSector, onBudget, onLocked, onClose }: Props) {
+export default function AdjustPanel({ risk, sector, budget, isPro, opts, onOpts, onRisk, onSector, onBudget, onLocked, onClose }: Props) {
   return (
     <div className="glass rounded-2xl p-5 sm:p-6 mt-4 fade-up" style={{ border: `1px solid ${C.pink}66`, boxShadow: `0 20px 50px -24px ${C.pink}` }}>
       <div className="flex items-center justify-between mb-5">
@@ -69,6 +71,7 @@ export default function AdjustPanel({ risk, sector, budget, isPro, onRisk, onSec
           </div>
         </div>
       </div>
+      <div className="mt-6 pt-5" style={{ borderTop: `1px solid ${C.border}` }}><ModelOptions value={opts} onChange={onOpts} /></div>
     </div>
   )
 }
