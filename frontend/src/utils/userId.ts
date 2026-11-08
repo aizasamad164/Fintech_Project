@@ -1,5 +1,6 @@
-// Stable per-browser user id, used until real Supabase login is wired in.
-// TODO (auth): replace with supabase.auth.getUser().id after sign-in.
+// The id saved portfolios belong to.
+// Signed in: the Supabase user id (set by AuthProvider).
+// Demo mode (no Supabase configured): a random id kept in this browser.
 const KEY = 'stocksense.userId'
 
 function newId(): string {
@@ -10,16 +11,23 @@ function newId(): string {
   })
 }
 
-let memo: string | null = null
+let signedInId: string | null = null
+let demoId: string | null = null
 
-export function getUserId(): string {
-  if (memo) return memo
+export function setSignedInUserId(id: string | null) { signedInId = id }
+
+export function getDemoUserId(): string {
+  if (demoId) return demoId
   try {
     const existing = localStorage.getItem(KEY)
-    memo = existing ?? newId()
-    if (!existing) localStorage.setItem(KEY, memo)
+    demoId = existing ?? newId()
+    if (!existing) localStorage.setItem(KEY, demoId)
   } catch {
-    memo = newId()
+    demoId = newId()
   }
-  return memo
+  return demoId
+}
+
+export function getUserId(): string {
+  return signedInId ?? getDemoUserId()
 }

@@ -1,4 +1,4 @@
--- 0004: Saved portfolios + live tracking (report Appendix A) and chat history.
+-- 0008 (was 0004 before the shariah merge): Saved portfolios + live tracking (report Appendix A) and chat history.
 -- Run once in the Supabase SQL editor. Safe to re-run (IF NOT EXISTS / DROP POLICY IF EXISTS).
 --
 -- Changes vs. the report's draft DDL (see report section 7):

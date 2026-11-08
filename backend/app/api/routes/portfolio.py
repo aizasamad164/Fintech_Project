@@ -4,9 +4,12 @@ Portfolio endpoints (report section 3):
 
   POST   /api/portfolio/rebalance            build a 3-5 holding portfolio + explanation
   POST   /api/portfolio/save                 persist an accepted portfolio
-  GET    /api/portfolio/list?user_id=...     a user's saved portfolios
+  GET    /api/portfolio/list                 the signed-in user's saved portfolios
   GET    /api/portfolio/{id}/performance     live P&L for one saved portfolio
-  DELETE /api/portfolio/{id}?user_id=...     remove a saved portfolio
+  DELETE /api/portfolio/{id}                remove a saved portfolio
+
+Saved-portfolio routes need a signed-in user (Bearer token). In demo mode
+(no Supabase configured) they take ?user_id=<uuid> instead; see app/api/deps.py.
 """
 from __future__ import annotations
 
@@ -14,9 +17,10 @@ import asyncio
 import uuid
 from typing import List, Literal, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
+from app.api.deps import CurrentUser, auth_mode, get_current_user, get_optional_user
 from app.compliance import shariah
 from app.data import portfolio_store
 from app.data.news import get_ticker_news
@@ -29,13 +33,6 @@ from app.schemas.portfolio import RecommendRequest, RecommendResponse
 router = APIRouter()
 DISCLAIMER = ("This output is an educational simulation only and does not "
               "constitute regulated financial advice.")
-
-
-def _check_uuid(value: str) -> str:
-    try:
-        return str(uuid.UUID(value))
-    except (ValueError, TypeError):
-        raise HTTPException(status_code=422, detail="user_id must be a UUID")
 
 
 # ---------------------------------------------------------------- rebalance
@@ -96,7 +93,7 @@ class PositionIn(BaseModel):
 
 
 class SaveRequest(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None   # demo mode only; ignored when signed in
     portfolio_name: str = "My Advisory Portfolio"
     target_sector: str = "All"
     risk_strategy: str = "balanced"
@@ -105,15 +102,19 @@ class SaveRequest(BaseModel):
 
     @field_validator("user_id")
     @classmethod
-    def _uuid(cls, v: str) -> str:
-        return str(uuid.UUID(v))
+    def _uuid(cls, v: Optional[str]) -> Optional[str]:
+        return str(uuid.UUID(v)) if v else None
 
 
 @router.post("/save")
-async def save(req: SaveRequest):
+async def save(req: SaveRequest, user: Optional[CurrentUser] = Depends(get_optional_user)):
+    if user is None and auth_mode() == "demo" and req.user_id:
+        user = CurrentUser(id=req.user_id, demo=True)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Sign in to save portfolios.")
     try:
         saved = await asyncio.to_thread(
-            portfolio_store.save_portfolio, req.user_id, req.portfolio_name, req.target_sector,
+            portfolio_store.save_portfolio, user.id, req.portfolio_name, req.target_sector,
             req.risk_strategy, req.initial_investment, [p.model_dump() for p in req.positions])
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"Could not save portfolio: {exc}")
@@ -122,16 +123,14 @@ async def save(req: SaveRequest):
 
 # ---------------------------------------------------------------- list / performance / delete
 @router.get("/list")
-async def list_saved(user_id: str = Query(...)):
-    uid = _check_uuid(user_id)
-    items = await asyncio.to_thread(portfolio_store.list_portfolios, uid)
+async def list_saved(user: CurrentUser = Depends(get_current_user)):
+    items = await asyncio.to_thread(portfolio_store.list_portfolios, user.id)
     return {"status": "success", "storage": portfolio_store.storage_mode(), "portfolios": items}
 
 
 @router.get("/{portfolio_id}/performance")
-async def performance(portfolio_id: str, user_id: str = Query(...)):
-    uid = _check_uuid(user_id)
-    saved = await asyncio.to_thread(portfolio_store.get_portfolio, portfolio_id, uid)
+async def performance(portfolio_id: str, user: CurrentUser = Depends(get_current_user)):
+    saved = await asyncio.to_thread(portfolio_store.get_portfolio, portfolio_id, user.id)
     if not saved:
         raise HTTPException(status_code=404, detail="Portfolio not found")
     perf = await asyncio.to_thread(calculate_portfolio_performance, saved.get("positions", []))
@@ -144,9 +143,8 @@ async def performance(portfolio_id: str, user_id: str = Query(...)):
 
 
 @router.delete("/{portfolio_id}")
-async def delete(portfolio_id: str, user_id: str = Query(...)):
-    uid = _check_uuid(user_id)
-    if not await asyncio.to_thread(portfolio_store.delete_portfolio, portfolio_id, uid):
+async def delete(portfolio_id: str, user: CurrentUser = Depends(get_current_user)):
+    if not await asyncio.to_thread(portfolio_store.delete_portfolio, portfolio_id, user.id):
         raise HTTPException(status_code=404, detail="Portfolio not found")
     return {"status": "success"}
 

@@ -1,19 +1,23 @@
 """
-FR-1.1: User registration/authentication via email+password or OAuth (JWT-based).
-Delegates actual auth to Supabase Auth; this router proxies/validates tokens.
+FR-1.1: accounts. Sign-up, sign-in, email confirmation, password reset and
+Google sign-in all happen in the browser through Supabase Auth; the frontend
+then sends its access token to this API (see app/api/deps.py).
+
+  GET /api/auth/mode   'supabase' (real accounts) or 'demo' (no Supabase configured)
+  GET /api/auth/me     who the token belongs to
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from app.api.deps import CurrentUser, auth_mode, get_current_user
 
 router = APIRouter()
 
 
-@router.post("/register")
-async def register():
-    # TODO: call Supabase auth.sign_up
-    raise NotImplementedError
+@router.get("/mode")
+async def mode():
+    return {"mode": auth_mode()}
 
 
-@router.post("/login")
-async def login():
-    # TODO: call Supabase auth.sign_in_with_password
-    raise NotImplementedError
+@router.get("/me")
+async def me(user: CurrentUser = Depends(get_current_user)):
+    return {"id": user.id, "email": user.email, "demo": user.demo}

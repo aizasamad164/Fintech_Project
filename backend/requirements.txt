@@ -34,6 +34,9 @@ yfinance==1.7.0
 PyPortfolioOpt==1.6.0
 joblib==1.4.2
 
+# --- Payments ---
+stripe>=12.0.0
+
 # --- LLM client ---
 groq>=0.11.0
 

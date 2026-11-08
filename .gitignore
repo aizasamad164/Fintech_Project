@@ -43,3 +43,4 @@ supabase/.temp/
 
 # Local saved-portfolio store used when Supabase isn't configured
 backend/.local_portfolios.json
+backend/.local_billing.json

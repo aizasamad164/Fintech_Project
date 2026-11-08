@@ -10,9 +10,10 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from app.api.deps import CurrentUser, get_optional_user
 from app.data import portfolio_store
 from app.llm.agent import run_investment_agent
 from app.llm.groq_client import groq_available
@@ -43,15 +44,21 @@ class ChatResponse(BaseModel):
 
 
 @router.post("/message", response_model=ChatResponse)
-async def chat_message(req: ChatRequest):
+async def chat_message(req: ChatRequest, user: Optional[CurrentUser] = Depends(get_optional_user)):
     if not groq_available():
         return ChatResponse(session_id=req.session_id, role="assistant", status="unavailable",
                             content="The AI advisor isn't configured yet: add GROQ_API_KEY to backend/.env "
                                     "and restart the backend.")
 
     context = req.active_portfolio
-    if req.portfolio_id and req.user_id:
-        saved = await asyncio.to_thread(portfolio_store.get_portfolio, req.portfolio_id, req.user_id)
+    # A saved portfolio is only loaded for its owner: the signed-in user,
+    # or in demo mode the user_id in the request body.
+    owner = user.id if user else None
+    if owner is None and req.user_id:
+        from app.api.deps import auth_mode
+        owner = req.user_id if auth_mode() == "demo" else None
+    if req.portfolio_id and owner:
+        saved = await asyncio.to_thread(portfolio_store.get_portfolio, req.portfolio_id, owner)
         if saved:
             context = saved
 

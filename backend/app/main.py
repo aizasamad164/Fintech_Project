@@ -11,9 +11,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, explain, insights, news, portfolio, recommend
+from app.api.routes import auth, billing, explain, insights, news, portfolio, recommend
 from app.config import settings
 from app.data.indicators import warm_up
+from app.api.deps import auth_mode
+from app.billing.gateway import configured as stripe_configured
 from app.data.portfolio_store import storage_mode
 from app.llm.chat_routes import router as chat_router
 from app.llm.groq_client import groq_available
@@ -57,6 +59,7 @@ app.include_router(portfolio.router, prefix="/api/portfolio", tags=["portfolio"]
 app.include_router(recommend.router, prefix="/api/v1", tags=["recommend"])
 app.include_router(explain.router, prefix="/api/explain", tags=["explain"])
 app.include_router(news.router, prefix="/api/news", tags=["news"])
+app.include_router(billing.router, prefix="/api/billing", tags=["billing"])
 app.include_router(insights.router, prefix="/api/insights", tags=["insights"])
 app.include_router(chat_router, prefix="/api")  # -> POST /api/chat/...
 
@@ -71,4 +74,6 @@ async def health_check():
         "groq_configured": groq_available(),
         "groq_model": settings.groq_model,
         "portfolio_storage": storage_mode(),
+        "auth_mode": auth_mode(),
+        "payments_configured": stripe_configured(),
     }

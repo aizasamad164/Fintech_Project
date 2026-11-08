@@ -1,7 +1,10 @@
 // App.tsx is the "traffic controller": it only decides WHICH screen to show
 // and holds the shared state (budget, risk, sector, pro status).
 // All UI lives in pages/ and components/.
-import { useCallback, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useAuth } from './auth/AuthProvider'
+import { getBillingStatus, pending, waitForPro, type BillingStatus } from './services/billingService'
+import { C } from './theme/tokens'
 import { DEFAULT_OPTIONS, type DashVariant, type Portfolio, type PortfolioOptions, type Risk, type Screen, type Sector, type Tab } from './types/portfolio'
 import { LESSONS } from './data/lessons'
 import { prefetchPortfolio } from './services/portfolioService'
@@ -25,6 +28,7 @@ import Checkout from './pages/pro/Checkout'
 import ProSuccess from './pages/pro/ProSuccess'
 
 export default function App() {
+  const auth = useAuth()
   const [screen, setScreen] = useState<Screen>('login')
   const [tab, setTab] = useState<Tab>('portfolio')
   const [budget, setBudget] = useState(5000)
@@ -32,7 +36,9 @@ export default function App() {
   const [sector, setSector] = useState<Sector>('Technology')
   const [opts, setOpts] = useState<PortfolioOptions>(DEFAULT_OPTIONS)   // model scope + Shariah filter
   const [dashVariant, setDashVariant] = useState<DashVariant>('success')
-  const [isPro, setIsPro] = useState(false)
+  const [billing, setBilling] = useState<BillingStatus | null>(null)
+  const isPro = Boolean(billing?.is_pro)
+  const setIsPro = (on: boolean) => setBilling(b => ({ ...(b ?? { status: 'none', current_period_end: null, cancel_at_period_end: false, simulated: false }), is_pro: on }))
   const [lessonId, setLessonId] = useState<number | null>(null)
   // Shared with the Advisor tab: what's on the dashboard, or which saved portfolio to discuss
   const [dashPortfolio, setDashPortfolio] = useState<Portfolio | null>(null)
@@ -46,11 +52,31 @@ export default function App() {
   const go = useCallback((next: Screen, back = false) => { setDir(back ? 'push-back' : 'push-fwd'); setScreen(next) }, [])
   const wrap = (node: ReactNode) => <div key={screen} className={dir}>{node}</div>
 
+  // Signed in (or demo) -> leave the login screen; signed out -> back to it
+  useEffect(() => {
+    if (auth.user && screen === 'login' && !auth.recovering) go('budget')
+    if (!auth.user && !auth.loading && screen !== 'login') { setBilling(null); go('login', true) }
+  }, [auth.user, auth.loading, auth.recovering]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pro comes from the server (Stripe), never from the browser alone
+  useEffect(() => {
+    if (!auth.user) return
+    let off = false
+    const params = new URLSearchParams(window.location.search)
+    const returned = params.get('redirect_status')          // back from a 3-D Secure bank page
+    const subId = returned ? pending.take() : null
+    if (returned) window.history.replaceState({}, '', window.location.pathname)
+    const load = subId && returned === 'succeeded' ? waitForPro(subId) : getBillingStatus()
+    load.then(b => { if (!off) setBilling(b) }).catch(() => { if (!off) setBilling(null) })
+    return () => { off = true }
+  }, [auth.user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleViewPortfolio = useCallback((s: Sector, r: Risk) => { setSector(s); setRisk(r); setTab('portfolio') }, [])
   const openPaywall = (from: 'sector' | 'nav') => { setProReturn(from); go('paywall') }
 
   // Onboarding (full-screen, before the nav appears)
-  if (screen === 'login') return wrap(<Login onLogin={() => go('budget')} />)
+  if (auth.loading) return <div className="min-h-screen" style={{ backgroundColor: C.canvas }} aria-busy="true" />
+  if (screen === 'login' || !auth.user || auth.recovering) return wrap(<Login />)
   if (screen === 'budget') return wrap(<BudgetStep onNext={b => { setBudget(b); go('risk') }} />)
   if (screen === 'risk') return wrap(<RiskStep onNext={r => { setRisk(r); go('sector') }} onBack={() => go('budget', true)} />)
   if (screen === 'sector') return wrap(<SectorStep isPro={isPro} onLocked={() => openPaywall('sector')}
@@ -59,7 +85,7 @@ export default function App() {
 
   // Pro flow (full-screen, outside the nav)
   if (screen === 'paywall') return wrap(<Paywall onUpgrade={() => go('checkout')} onBack={() => go(proReturn, true)} />)
-  if (screen === 'checkout') return wrap(<Checkout onSuccess={() => go('pro-success')} onBack={() => go('paywall', true)} />)
+  if (screen === 'checkout') return wrap(<Checkout onSuccess={b => { setBilling(b); go('pro-success') }} onBack={() => go('paywall', true)} />)
   if (screen === 'pro-success') return wrap(<ProSuccess onDone={() => { setIsPro(true); if (proReturn === 'nav') setTab('insights'); go(proReturn) }} />)
 
   // Main app with tabs
@@ -81,7 +107,8 @@ export default function App() {
       {tab === 'learn' && (lessonId !== null
         ? <div key={lessonId} className="push-fwd"><LessonDetail id={lessonId} onBack={() => setLessonId(null)} onNext={() => setLessonId((lessonId + 1) % LESSONS.length)} /></div>
         : <div key="list" className="push-back"><LearnTab onLesson={setLessonId} /></div>)}
-      {tab === 'account' && <Account isPro={isPro} onUpgrade={() => openPaywall('nav')} onSignOut={() => { setIsPro(false); go('login', true) }} />}
+      {tab === 'account' && <Account isPro={isPro} onUpgrade={() => openPaywall('nav')} onSignOut={() => { void auth.signOut() }}
+        email={auth.user?.email ?? null} demo={Boolean(auth.user?.demo)} billing={billing} onBilling={setBilling} />}
     </NavShell>
   )
 }

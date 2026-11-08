@@ -1,66 +1,143 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import { C, HEADING } from '../../theme/tokens'
 import LiveBackdrop from '../../components/effects/LiveBackdrop'
 import { BackLink } from '../../components/ui/Buttons'
+import {
+  STRIPE_PUBLISHABLE_KEY, getBillingConfig, pending, simulateUpgrade, startSubscription, waitForPro,
+  type BillingConfig, type BillingStatus,
+} from '../../services/billingService'
 
-// TODO (backend): replace pay() with a real payment gateway session (e.g. Stripe Checkout)
-// and only call onSuccess after the backend confirms the subscription.
-export default function Checkout({ onSuccess, onBack }: { onSuccess: () => void; onBack: () => void }) {
-  const [card, setCard] = useState('')
-  const [exp, setExp] = useState('')
-  const [cvc, setCvc] = useState('')
-  const [paying, setPaying] = useState(false)
-  const pay = () => { setPaying(true); setTimeout(onSuccess, 1200) }
-  const input = (filled: string) => ({ backgroundColor: C.surface, border: `1px solid ${filled ? C.cyan : C.border}`, color: C.text })
+interface Props { onSuccess: (s: BillingStatus) => void; onBack: () => void }
+
+// Load Stripe.js once (it comes from js.stripe.com, as Stripe requires)
+const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
+
+const appearance = {
+  theme: 'night' as const,
+  variables: {
+    colorPrimary: C.cyan, colorBackground: '#0F1828', colorText: C.text, colorTextSecondary: C.muted,
+    colorDanger: C.pink, borderRadius: '10px', fontFamily: 'Space Grotesk, system-ui, sans-serif', fontSizeBase: '15px',
+  },
+  rules: { '.Input': { border: `1px solid ${C.border}` }, '.Label': { fontWeight: '600' } },
+}
+
+function Summary({ cfg }: { cfg: BillingConfig | null }) {
+  const amount = cfg ? (cfg.price.amount_cents / 100).toFixed(2) : '9.00'
+  return (
+    <div className="p-4 rounded-xl mb-6" style={{ backgroundColor: 'rgba(10,16,27,0.6)', border: `1px solid ${C.border}` }}>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-base font-semibold" style={{ color: C.text }}>StockSense Pro</div>
+          <div className="text-sm font-medium mt-0.5" style={{ color: C.muted }}>Monthly · cancel anytime</div>
+        </div>
+        <div className="text-xl" style={{ fontFamily: HEADING, fontWeight: 600, color: C.text }}>${amount}</div>
+      </div>
+    </div>
+  )
+}
+
+/** The card form itself. Card details go from this form straight to Stripe. */
+function PayForm({ subscriptionId, onSuccess }: { subscriptionId: string; onSuccess: (s: BillingStatus) => void }) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const pay = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!stripe || !elements) return
+    setBusy(true); setError(null)
+    pending.set(subscriptionId)   // in case the bank sends the user to a 3-D Secure page and back
+    const { error: payError } = await stripe.confirmPayment({
+      elements, redirect: 'if_required', confirmParams: { return_url: window.location.origin },
+    })
+    if (payError) { setError(payError.message ?? 'The payment did not go through.'); setBusy(false); return }
+    try {
+      const status = await waitForPro(subscriptionId)
+      pending.take()
+      if (status.is_pro) onSuccess(status)
+      else setError('Payment received, but Pro is not active yet. Refresh in a minute.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not confirm the subscription.')
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <form onSubmit={pay} className="space-y-5">
+      <PaymentElement options={{ layout: 'tabs' }} />
+      {error && <p className="text-sm font-semibold" style={{ color: C.pink }} role="alert">{error}</p>}
+      <button type="submit" disabled={!stripe || busy} className="cta w-full py-3.5 rounded-xl text-[0.95rem] font-semibold disabled:opacity-60"
+        style={{ backgroundColor: C.cyan, color: C.canvas }}>
+        {busy ? 'Processing…' : 'Pay $9.00 and upgrade'}
+      </button>
+    </form>
+  )
+}
+
+export default function Checkout({ onSuccess, onBack }: Props) {
+  const [cfg, setCfg] = useState<BillingConfig | null>(null)
+  const [sub, setSub] = useState<{ subscription_id: string; client_secret: string } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const live = Boolean(cfg?.configured && stripePromise)
+  useEffect(() => { getBillingConfig().then(setCfg).catch(e => setError(e.message)) }, [])
+  useEffect(() => {
+    if (!live || sub) return
+    startSubscription().then(setSub).catch(e => setError(e.message))
+  }, [live, sub])
+
+  const options = useMemo(() => (sub ? { clientSecret: sub.client_secret, appearance } : undefined), [sub])
+
+  const simulate = async () => {
+    setBusy(true); setError(null)
+    try { onSuccess(await simulateUpgrade()) } catch (e) { setError(e instanceof Error ? e.message : 'Could not upgrade.') } finally { setBusy(false) }
+  }
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-5 py-12" style={{ backgroundColor: C.canvas }}>
       <LiveBackdrop />
       <div className="relative w-full max-w-md glass rounded-2xl p-7" style={{ zIndex: 1, border: `1px solid ${C.border}` }}>
         <BackLink onClick={onBack} />
-        <div className="p-4 rounded-xl mb-6 fade-up" style={{ backgroundColor: C.card, border: `1px solid ${C.border}` }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-base font-bold" style={{ color: C.text }}>StockSense Pro</div>
-              <div className="text-sm mt-0.5" style={{ color: C.muted }}>Monthly subscription · cancel anytime</div>
+        <h1 className="text-2xl mb-5" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.02em', color: C.text }}>Upgrade to Pro</h1>
+        <Summary cfg={cfg} />
+
+        {!cfg && !error && <div className="h-40 rounded-xl animate-pulse" style={{ backgroundColor: C.card }} aria-label="Loading" />}
+
+        {cfg && live && !sub && !error && <div className="h-56 rounded-xl animate-pulse" style={{ backgroundColor: C.card }} aria-label="Preparing secure card form" />}
+        {cfg && live && sub && options && (
+          <Elements stripe={stripePromise} options={options}>
+            <PayForm subscriptionId={sub.subscription_id} onSuccess={onSuccess} />
+          </Elements>
+        )}
+
+        {cfg && !live && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl text-sm font-medium leading-relaxed" style={{ backgroundColor: '#F0B43C14', border: '1px solid #F0B43C55', color: C.text2 }}>
+              Payments aren't set up on this computer.{' '}
+              {!cfg.configured ? <>Add <code style={{ color: C.cyan }}>STRIPE_SECRET_KEY</code> to <code>backend/.env</code></> : null}
+              {!cfg.configured && !STRIPE_PUBLISHABLE_KEY ? ' and ' : null}
+              {!STRIPE_PUBLISHABLE_KEY ? <><code style={{ color: C.cyan }}>VITE_STRIPE_PUBLISHABLE_KEY</code> to <code>frontend/.env</code></> : null}
+              {' '}to take test card payments.
             </div>
-            <div className="text-base font-semibold" style={{ fontFamily: HEADING, fontWeight: 600, letterSpacing: '-0.02em', color: C.text }}>$9.00</div>
+            {!cfg.configured && (
+              <button onClick={simulate} disabled={busy} className="pressable w-full py-3 rounded-xl text-sm font-semibold disabled:opacity-60"
+                style={{ border: `1px solid ${C.border}`, color: C.text2, backgroundColor: 'rgba(10,16,27,0.6)' }}>
+                {busy ? 'Upgrading…' : 'Simulate the upgrade (demo, no payment)'}
+              </button>
+            )}
           </div>
-          <div className="mt-3 pt-3 flex items-center justify-between text-sm" style={{ borderTop: `1px solid ${C.border}`, color: C.muted }}>
-            <span>Total due today</span><span style={{ color: C.text, fontWeight: 600 }}>$9.00</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3 mb-5 fade-up d1">
-          <button onClick={pay} className="flex items-center justify-center gap-2 py-3 rounded-xl text-base font-bold transition-all hover:opacity-90"
-            style={{ backgroundColor: '#000', color: '#fff' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-            Apple Pay
-          </button>
-          <button onClick={pay} className="flex items-center justify-center gap-2 py-3 rounded-xl text-base font-bold transition-all hover:opacity-90"
-            style={{ backgroundColor: C.surface, border: `1px solid ${C.border}`, color: C.text }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            Google Pay
-          </button>
-        </div>
-        <div className="flex items-center gap-3 mb-5 fade-up d2">
-          <div className="flex-1 h-px" style={{ backgroundColor: C.border }} />
-          <span className="text-sm" style={{ color: C.muted }}>or pay by card</span>
-          <div className="flex-1 h-px" style={{ backgroundColor: C.border }} />
-        </div>
-        <div className="space-y-3 mb-5 fade-up d3">
-          <input placeholder="Card number" value={card} onChange={e => setCard(e.target.value)} maxLength={19} className="w-full px-4 py-3 rounded-lg text-base outline-none transition-all" style={input(card)} />
-          <div className="grid grid-cols-2 gap-3">
-            <input placeholder="MM / YY" value={exp} onChange={e => setExp(e.target.value)} maxLength={7} className="w-full px-4 py-3 rounded-lg text-base outline-none transition-all" style={input(exp)} />
-            <input placeholder="CVC" value={cvc} onChange={e => setCvc(e.target.value)} maxLength={4} type="password" className="w-full px-4 py-3 rounded-lg text-base outline-none transition-all" style={input(cvc)} />
-          </div>
-        </div>
-        <button onClick={pay} disabled={paying}
-          className="w-full py-3.5 rounded-lg text-base font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 fade-up d4"
-          style={{ backgroundColor: paying ? C.border : C.cyan, color: C.canvas }}>
-          {paying ? 'Processing…' : 'Confirm payment — $9.00'}
-        </button>
-        <div className="flex items-center justify-center gap-2 mt-4 fade-up d5">
-          <svg width="12" height="12" viewBox="0 0 12 14" fill="none"><rect x="2" y="5" width="8" height="8" rx="1.5" stroke={C.muted} strokeWidth="1.2" /><path d="M4 5V4a2 2 0 014 0v1" stroke={C.muted} strokeWidth="1.2" /></svg>
-          <span className="text-sm" style={{ color: C.muted }}>Simulated only — no real payment processed</span>
+        )}
+
+        {error && <p className="text-sm font-semibold mt-4" style={{ color: C.pink }} role="alert">{error}</p>}
+
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <svg width="12" height="12" viewBox="0 0 12 14" fill="none" aria-hidden><rect x="2" y="5" width="8" height="8" rx="1.5" stroke={C.muted} strokeWidth="1.2" /><path d="M4 5V4a2 2 0 014 0v1" stroke={C.muted} strokeWidth="1.2" /></svg>
+          <span className="text-xs font-medium" style={{ color: C.muted }}>
+            {live ? 'Secured by Stripe. Test mode: use card 4242 4242 4242 4242, any future date, any CVC.' : 'No card details are collected in demo mode.'}
+          </span>
         </div>
       </div>
     </div>

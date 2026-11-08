@@ -11,7 +11,7 @@ if not exist "%ROOT%backend\venv\Scripts\activate.bat" (
   echo.
   echo  Backend setup not found: backend\venv is missing.
   echo  First-time setup, in the backend folder:
-  echo    python -m venv venv
+  echo    py -3.12 -m venv venv
   echo    venv\Scripts\activate
   echo    pip install -r requirements.txt
   echo.
